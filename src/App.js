@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import './App.css';
-import { expenseAPI, userAPI, categoryAPI, testAPI, stopInfraAPI } from './services/api';
+import { expenseAPI, userAPI, categoryAPI, stopInfraAPI } from './services/api';
 import { dateHelpers } from './utils/dateHelpers';
 import CalendarPicker from './components/Common/CalendarPicker';
 
@@ -28,7 +28,7 @@ function App() {
         setCurrentPage(page);
     }, []);
 
-    // Compute filtered expenses based on date range (no need to filter again, but keep for consistency)
+    // Compute filtered expenses based on date range
     const filteredExpenses = useMemo(() => {
         if (!dateRange) return expenses;
         return expenses.filter(expense =>
@@ -38,35 +38,27 @@ function App() {
         );
     }, [expenses, dateRange]);
 
-    // Fetch all data (users, categories, and expenses for current date range)
+    // Fetch only users, categories, and expenses for the selected date range
     const loadAllData = useCallback(async () => {
         setLoading(true);
         setApiStatus('connecting');
 
         try {
-            console.log('🔄 Testing API connection...');
+            console.log('🔄 Loading data...');
 
-            // Test API connection first
-            const testResponse = await testAPI();
-            console.log('✅ API Test Response:', testResponse.data);
-
-            // Fetch users and categories in parallel
-            const [usersRes, categoriesRes] = await Promise.all([
+            // Fetch users, categories, and expenses in parallel
+            const [usersRes, categoriesRes, expensesRes] = await Promise.all([
                 userAPI.getUsers(),
-                categoryAPI.getCategories()
+                categoryAPI.getCategories(),
+                expenseAPI.getExpensesByDateRange(dateRange.startDate, dateRange.endDate)
             ]);
 
             console.log('👥 Users Response:', usersRes.data);
             console.log('🏷️ Categories Response:', categoriesRes.data);
+            console.log('📊 Expenses Response:', expensesRes.data);
 
             setUsers(usersRes.data.users || []);
             setCategories(categoriesRes.data.categories || []);
-
-            // Fetch expenses for the current date range
-            const { startDate, endDate } = dateRange;
-            const expensesRes = await expenseAPI.getExpensesByDateRange(startDate, endDate);
-            console.log('📊 Expenses Response:', expensesRes.data);
-
             setExpenses(expensesRes.data.expenses || []);
 
             setApiStatus('connected');
@@ -76,42 +68,14 @@ function App() {
             console.error('❌ API Error:', error);
             setApiStatus('error');
 
-            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to load data. Using sample data instead.';
-            alert(msg);
-
-            // Set sample data for testing UI
-            setExpenses([
-                {
-                    expense_id: '1',
-                    amount: 1250.00,
-                    category_name: 'Food',
-                    description: 'Grocery shopping',
-                    expense_date: '2024-06-15',
-                    user_name: 'John Doe'
-                },
-                {
-                    expense_id: '2',
-                    amount: 850.00,
-                    category_name: 'Transport',
-                    description: 'Uber rides',
-                    expense_date: '2024-06-14',
-                    user_name: 'Jane Smith'
-                }
-            ]);
-
-            setUsers([
-                { user_id: '1', name: 'John Doe', description: 'Primary user' },
-                { user_id: '2', name: 'Jane Smith', description: 'Secondary user' }
-            ]);
-
-            setCategories([
-                { category_id: '1', category_name: 'Food', description: 'Food and groceries' },
-                { category_id: '2', category_name: 'Transport', description: 'Transportation costs' }
-            ]);
+            // Fallback to sample data (optional)
+            setExpenses([]);
+            setUsers([]);
+            setCategories([]);
         } finally {
             setLoading(false);
         }
-    }, [dateRange]); // Re‑create loadAllData whenever dateRange changes
+    }, [dateRange]);
 
     // Load all data on mount and whenever dateRange changes
     useEffect(() => {
@@ -129,17 +93,13 @@ function App() {
 
         try {
             setStoppingInfra(true);
-
             const response = await stopInfraAPI();
-
             alert(
                 response.data.message ||
                 "Infrastructure stop request submitted."
             );
-
         } catch (error) {
             console.error(error);
-
             const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to stop infrastructure.';
             alert(msg);
         } finally {
@@ -153,13 +113,12 @@ function App() {
                 return <Dashboard
                     dateRange={dateRange}
                     filteredExpenses={filteredExpenses}
-                    expenses={expenses}
                     users={users}
                     categories={categories}
                     loading={loading}
                     apiStatus={apiStatus}
                     onRefresh={loadAllData}
-                    onNavigate={handleNavigate}   // <-- NEW prop
+                    onNavigate={handleNavigate}
                 />;
             case 'expenses':
                 return <ExpenseList
@@ -180,13 +139,12 @@ function App() {
                 return <Dashboard
                     dateRange={dateRange}
                     filteredExpenses={filteredExpenses}
-                    expenses={expenses}
                     users={users}
                     categories={categories}
                     loading={loading}
                     apiStatus={apiStatus}
                     onRefresh={loadAllData}
-                    onNavigate={handleNavigate}   // <-- NEW prop
+                    onNavigate={handleNavigate}
                 />;
         }
     };
@@ -207,7 +165,7 @@ function App() {
     <span className={`status-indicator ${apiStatus}`}>
         {apiStatus === 'connecting' && '🔄 Connecting to AWS...'}
         {apiStatus === 'connected' && '✅ AWS Connected'}
-        {apiStatus === 'error' && '❌ Using Sample Data'}
+        {apiStatus === 'error' && '❌ Connection Error'}
     </span>
 
 

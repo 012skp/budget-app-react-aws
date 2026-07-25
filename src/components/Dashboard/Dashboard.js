@@ -12,39 +12,25 @@ import {
     CartesianGrid
 } from "recharts";
 
-import { expenseAPI } from '../../services/api';
-import React, {useEffect, useState, useMemo} from 'react';
-
+import React, {useMemo} from 'react';
 
 import {getUserName, getCategoryName} from '../../utils/dataHelpers';
 
 function Dashboard({
                        dateRange,
                        filteredExpenses,
-                       expenses,
                        users,
                        categories,
                        loading,
+                       apiStatus,
                        onRefresh,
-                       onNavigate          // <-- NEW prop
+                       onNavigate
                    }) {
-
-    const [categoryBreakdown, setCategoryBreakdown] = useState([]);
-    const [userBreakdown, setUserBreakdown] = useState([]);
 
     const { startDate, endDate } = dateRange;
 
-    // Total of all expenses (no date filter)
-    const totalExpenses = useMemo(() =>
-        expenses.reduce(
-            (sum, expense) => sum + parseFloat(expense.Amount || 0),
-            0
-        ),
-        [expenses]
-    );
-
     // Total of filtered expenses (date range)
-    const monthlyExpenses = useMemo(() =>
+    const totalExpenses = useMemo(() =>
         filteredExpenses.reduce(
             (sum, expense) => sum + parseFloat(expense.Amount || 0),
             0
@@ -52,38 +38,29 @@ function Dashboard({
         [filteredExpenses]
     );
 
-    const loadDashboardData = async () => {
-        try {
-            const [categoryRes, userRes] = await Promise.all([
-                expenseAPI.getExpensesByCategory(startDate, endDate),
-                expenseAPI.getExpensesByUser(startDate, endDate)
-            ]);
+    // Compute category breakdown client-side
+    const categoryBreakdown = useMemo(() => {
+        const map = {};
+        filteredExpenses.forEach(exp => {
+            const catId = exp.CategoryId;
+            const catName = getCategoryName(catId, categories);
+            const amount = parseFloat(exp.Amount) || 0;
+            map[catName] = (map[catName] || 0) + amount;
+        });
+        return Object.entries(map).map(([name, value]) => ({ name, value }));
+    }, [filteredExpenses, categories]);
 
-            setCategoryBreakdown(
-                (categoryRes.data.breakdown || []).map(item => ({
-                    name: item.CategoryName,
-                    value: parseFloat(item.TotalAmount),
-                    count: item.ExpenseCount
-                }))
-            );
-
-            setUserBreakdown(
-                (userRes.data.breakdown || []).map(item => ({
-                    name: item.Name,
-                    total: parseFloat(item.TotalAmount),
-                    count: item.ExpenseCount
-                }))
-            );
-        } catch (error) {
-            console.error(error);
-            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to load dashboard data.';
-            alert(msg);
-        }
-    }
-
-    useEffect(() => {
-        loadDashboardData();
-    }, [startDate, endDate]);
+    // Compute user breakdown client-side
+    const userBreakdown = useMemo(() => {
+        const map = {};
+        filteredExpenses.forEach(exp => {
+            const userId = exp.UserId;
+            const userName = getUserName(userId, users);
+            const amount = parseFloat(exp.Amount) || 0;
+            map[userName] = (map[userName] || 0) + amount;
+        });
+        return Object.entries(map).map(([name, total]) => ({ name, total }));
+    }, [filteredExpenses, users]);
 
     // Compute user‑category breakdown for stacked bar chart
     const userCategoryBreakdown = useMemo(() => {
@@ -129,8 +106,7 @@ function Dashboard({
     ];
 
     const handleRefresh = async () => {
-        await onRefresh();
-        await loadDashboardData();
+        if (onRefresh) await onRefresh();
     };
 
     return (
@@ -162,7 +138,7 @@ function Dashboard({
                         minimumFractionDigits: 2
                     })}
                     </p>
-                    <small>{expenses.length} transactions</small>
+                    <small>{filteredExpenses.length} transactions</small>
                 </button>
 
                 {/* Clickable Categories card */}
