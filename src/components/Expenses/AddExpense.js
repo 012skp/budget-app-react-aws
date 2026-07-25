@@ -28,7 +28,8 @@ function AddExpense({ users, categories, onExpenseAdded }) {
             onExpenseAdded();
         } catch (error) {
             console.error(error);
-            alert('Failed to add expense');
+            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to add expense';
+            alert(msg);
         }
     };
 

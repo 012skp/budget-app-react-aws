@@ -27,7 +27,8 @@ function CategoryManager({ categories, loading, onRefresh }) {
             onRefresh();
         } catch (error) {
             console.error(error);
-            alert('Failed to update category');
+            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to update category';
+            alert(msg);
         }
     };
 
@@ -41,7 +42,8 @@ function CategoryManager({ categories, loading, onRefresh }) {
             onRefresh();
         } catch (error) {
             console.error(error);
-            alert('Failed to delete category');
+            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to delete category';
+            alert(msg);
         }
     };
 
@@ -58,7 +60,8 @@ function CategoryManager({ categories, loading, onRefresh }) {
             onRefresh();
         } catch (error) {
             console.error(error);
-            alert('Failed to add category');
+            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to add category';
+            alert(msg);
         }
     };
 

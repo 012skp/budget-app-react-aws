@@ -129,7 +129,8 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
             }
         } catch (error) {
             console.error(error);
-            alert('Failed to update expense');
+            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to update expense';
+            alert(msg);
         }
     };
 
@@ -145,7 +146,8 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
             }
         } catch (error) {
             console.error(error);
-            alert('Failed to delete expense');
+            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to delete expense';
+            alert(msg);
         }
     };
 

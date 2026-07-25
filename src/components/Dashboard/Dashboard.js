@@ -75,6 +75,8 @@ function Dashboard({
             );
         } catch (error) {
             console.error(error);
+            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to load dashboard data.';
+            alert(msg);
         }
     }
 

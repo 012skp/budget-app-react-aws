@@ -62,10 +62,8 @@ function App() {
         } catch (error) {
             console.error(error);
 
-            alert(
-                error.response?.data?.message ||
-                "Failed to stop infrastructure."
-            );
+            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to stop infrastructure.';
+            alert(msg);
         } finally {
             setStoppingInfra(false);
         }
@@ -104,6 +102,9 @@ function App() {
         } catch (error) {
             console.error('❌ API Error:', error);
             setApiStatus('error');
+
+            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to load data. Using sample data instead.';
+            alert(msg);
 
             // Set sample data for testing UI
             setExpenses([
