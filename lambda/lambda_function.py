@@ -147,6 +147,21 @@ class InfrastructureManager:
 
         return True, public_ip, was_auto_started
 
+    def log_access(self, action):
+        """Append a line to /var/log/infra_access.log on the EC2 instance (best effort)."""
+        try:
+            ssm = boto3.client('ssm')
+            cmd = f"echo '$(date) - {action}' >> /var/log/infra_access.log"
+            ssm.send_command(
+                InstanceIds=[self.instance_id],
+                DocumentName='AWS-RunShellScript',
+                Parameters={'commands': [cmd]}
+            )
+            self.log(f"Access logged for action: {action}")
+        except Exception as e:
+            self.log(f"Failed to write access log: {e}")
+
+
 def lambda_handler(event, context):
     # Configuration
     INSTANCE_ID = 'i-04922d403f1790008'
@@ -188,6 +203,9 @@ def lambda_handler(event, context):
     try:
         # Infrastructure management actions
         if action == 'start':
+            # Log the invocation
+            infra.log_access('start')
+
             # For direct start action, we should also handle stopping state
             state, _ = infra.get_instance_status()
             if state == 'stopping':
@@ -211,6 +229,9 @@ def lambda_handler(event, context):
             }
 
         elif action == 'stop':
+            # Log the invocation
+            infra.log_access('stop')
+
             response = ec2.stop_instances(InstanceIds=[INSTANCE_ID])
             return {
                 'statusCode': 200,
@@ -223,6 +244,9 @@ def lambda_handler(event, context):
             }
 
         elif action == 'status':
+            # Log the invocation
+            infra.log_access('status')
+
             state, public_ip = infra.get_instance_status()
             return {
                 'statusCode': 200,
@@ -252,6 +276,9 @@ def lambda_handler(event, context):
                         'ip': public_ip
                     })
                 }
+
+            # Log the access (action that required DB)
+            infra.log_access(action)
 
             # Connect to database
             connection = pymysql.connect(host=public_ip, **DB_CONFIG)
