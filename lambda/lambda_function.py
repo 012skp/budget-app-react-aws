@@ -431,16 +431,25 @@ def lambda_handler(event, context):
                         }
 
                     elif action == 'delete_user':
-                        cursor.execute("DELETE FROM Users WHERE UserId = %s", (data.get('UserId'),))
+                        # Cascade delete all expenses belonging to this user
+                        user_id = data.get('UserId')
+                        cursor.execute("SELECT COUNT(*) as cnt FROM Expenses WHERE UserId = %s", (user_id,))
+                        count = cursor.fetchone()['cnt']
+                        if count > 0:
+                            cursor.execute("DELETE FROM Expenses WHERE UserId = %s", (user_id,))
+                            infra.log(f"Deleted {count} expenses associated with user ID {user_id}")
+                        # Now delete the user
+                        cursor.execute("DELETE FROM Users WHERE UserId = %s", (user_id,))
                         connection.commit()
-                        infra.log(f"Deleted user ID {data.get('UserId')}")
+                        infra.log(f"Deleted user ID {user_id}")
 
                         return {
                             'statusCode': 200,
                             'headers': cors_headers,
                             'body': json.dumps({
-                                'message': 'User deleted successfully',
-                                'UserId': data.get('UserId')
+                                'message': 'User and associated expenses deleted successfully',
+                                'UserId': user_id,
+                                'deleted_expenses': count
                             })
                         }
 
@@ -496,16 +505,25 @@ def lambda_handler(event, context):
                         }
 
                     elif action == 'delete_category':
-                        cursor.execute("DELETE FROM Categories WHERE CategoryId = %s", (data.get('CategoryId'),))
+                        # Cascade delete all expenses belonging to this category
+                        category_id = data.get('CategoryId')
+                        cursor.execute("SELECT COUNT(*) as cnt FROM Expenses WHERE CategoryId = %s", (category_id,))
+                        count = cursor.fetchone()['cnt']
+                        if count > 0:
+                            cursor.execute("DELETE FROM Expenses WHERE CategoryId = %s", (category_id,))
+                            infra.log(f"Deleted {count} expenses associated with category ID {category_id}")
+                        # Now delete the category
+                        cursor.execute("DELETE FROM Categories WHERE CategoryId = %s", (category_id,))
                         connection.commit()
-                        infra.log(f"Deleted category ID {data.get('CategoryId')}")
+                        infra.log(f"Deleted category ID {category_id}")
 
                         return {
                             'statusCode': 200,
                             'headers': cors_headers,
                             'body': json.dumps({
-                                'message': 'Category deleted successfully',
-                                'CategoryId': data.get('CategoryId')
+                                'message': 'Category and associated expenses deleted successfully',
+                                'CategoryId': category_id,
+                                'deleted_expenses': count
                             })
                         }
 
