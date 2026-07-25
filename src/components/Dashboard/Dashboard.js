@@ -223,6 +223,7 @@ function Dashboard({
                                 className="expense-item"
                             >
                                 <div className="expense-info">
+                                    <span className="expense-id">#{expense.ExpenseId}</span>
                                     <span className="expense-description">
                                         {expense.Description}
                                     </span>

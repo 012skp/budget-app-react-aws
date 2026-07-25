@@ -291,6 +291,12 @@ body {
   gap: 0.25rem;
 }
 
+.expense-id {
+  font-size: 0.75rem;
+  color: #999;
+  margin-bottom: 2px;
+}
+
 .expense-description {
   font-weight: 500;
   color: #333;
@@ -356,7 +362,7 @@ body {
 
 .table-header {
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr 1fr 1fr;
+  grid-template-columns: 0.5fr 1fr 2fr 1fr 1fr 1fr 1fr;
   gap: 1rem;
   padding: 1rem;
   background-color: #667eea;
@@ -366,7 +372,7 @@ body {
 
 .table-row {
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr 1fr 1fr;
+  grid-template-columns: 0.5fr 1fr 2fr 1fr 1fr 1fr 1fr;
   gap: 1rem;
   padding: 1rem;
   border-bottom: 1px solid #f0f0f0;

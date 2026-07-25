@@ -99,6 +99,7 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
             ) : filteredExpenses.length > 0 ? (
                 <div className="expense-table">
                     <div className="table-header">
+                        <span>ID</span>
                         <span>Date</span>
                         <span>Description</span>
                         <span>Category</span>
@@ -111,6 +112,8 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
                         editingExpenseId === expense.ExpenseId ? (
 
                             <div key={expense.ExpenseId} className="table-row">
+
+                                <span>{expense.ExpenseId}</span>
 
                                 <span>{expense.Timestamp}</span>
 
@@ -174,13 +177,15 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
                                     }
                                 />
 
-                                <button onClick={handleSave}>
-                                    💾 Save
-                                </button>
+                                <span>
+                                    <button onClick={handleSave}>
+                                        💾 Save
+                                    </button>
 
-                                <button onClick={handleCancel}>
-                                    ❌ Cancel
-                                </button>
+                                    <button onClick={handleCancel}>
+                                        ❌ Cancel
+                                    </button>
+                                </span>
 
                             </div>
 
@@ -190,45 +195,33 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
                                 key={expense.ExpenseId}
                                 className="table-row"
                             >
+                                <span>{expense.ExpenseId}</span>
+
                                 <span>{expense.Timestamp}</span>
 
                                 <span>{expense.Description}</span>
 
                                 <span>
-                {getCategoryName(
-                    expense.CategoryId,
-                    categories
-                )}
-            </span>
+                                    {getCategoryName(expense.CategoryId, categories)}
+                                </span>
 
                                 <span>
-                {getUserName(
-                    expense.UserId,
-                    users
-                )}
-            </span>
+                                    {getUserName(expense.UserId, users)}
+                                </span>
 
                                 <span>
-                ₹{parseFloat(
-                                    expense.Amount
-                                ).toFixed(2)}
-            </span>
+                                    ₹{parseFloat(expense.Amount).toFixed(2)}
+                                </span>
 
-                                <button
-                                    onClick={() =>
-                                        handleEditClick(expense)
-                                    }
-                                >
-                                    ✏️ Edit
-                                </button>
+                                <span>
+                                    <button onClick={() => handleEditClick(expense)}>
+                                        ✏️ Edit
+                                    </button>
 
-                                <button
-                                    onClick={() =>
-                                        handleDelete(expense.ExpenseId)
-                                    }
-                                >
-                                    🗑 Delete
-                                </button>
+                                    <button onClick={() => handleDelete(expense.ExpenseId)}>
+                                        🗑 Delete
+                                    </button>
+                                </span>
                             </div>
 
                         )
