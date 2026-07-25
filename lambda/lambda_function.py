@@ -21,8 +21,37 @@ class InfrastructureManager:
         instance = response['Reservations'][0]['Instances'][0]
         return instance['State']['Name'], instance.get('PublicIpAddress')
 
+    def wait_for_stop(self):
+        """Wait until the instance is in 'stopped' state (if currently 'stopping' or 'running')."""
+        self.log("Waiting for instance to reach 'stopped' state...")
+        max_wait_time = 300  # 5 minutes max
+        wait_time = 0
+        while wait_time < max_wait_time:
+            state, _ = self.get_instance_status()
+            if state == 'terminated':
+                self.log("ERROR: Instance terminated unexpectedly.")
+                return False
+            if state == 'stopped':
+                self.log("Instance is now stopped.")
+                return True
+            time.sleep(10)
+            wait_time += 10
+            self.log(f"Waiting for stop... Current state: {state} (waited {wait_time}s)")
+        self.log(f"Instance did not stop within {max_wait_time} seconds.")
+        return False
+
     def start_instance(self):
-        """Start EC2 instance and wait for running state"""
+        """Start EC2 instance and wait for running state.
+           If instance is 'stopping', wait until stopped before starting."""
+        current_state, _ = self.get_instance_status()
+        if current_state == 'stopping':
+            self.log("Instance is currently stopping. Waiting for it to stop before starting...")
+            if not self.wait_for_stop():
+                return False
+        elif current_state == 'running':
+            self.log("Instance is already running.")
+            return True
+
         self.log("Starting EC2 instance...")
         self.ec2.start_instances(InstanceIds=[self.instance_id])
 
@@ -159,6 +188,17 @@ def lambda_handler(event, context):
     try:
         # Infrastructure management actions
         if action == 'start':
+            # For direct start action, we should also handle stopping state
+            state, _ = infra.get_instance_status()
+            if state == 'stopping':
+                # Wait for stop then start
+                infra.log("Instance is stopping. Waiting for stop before starting (via start action)...")
+                if not infra.wait_for_stop():
+                    return {
+                        'statusCode': 500,
+                        'headers': cors_headers,
+                        'body': json.dumps({'error': 'Failed to wait for instance to stop.'})
+                    }
             response = ec2.start_instances(InstanceIds=[INSTANCE_ID])
             return {
                 'statusCode': 200,
