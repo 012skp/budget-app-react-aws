@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import './App.css';
 import { expenseAPI, userAPI, categoryAPI, testAPI, stopInfraAPI } from './services/api';
 import { dateHelpers } from './utils/dateHelpers';
@@ -22,6 +22,16 @@ function App() {
     const [loading, setLoading] = useState(true);
     const [apiStatus, setApiStatus] = useState('connecting');
     const [stoppingInfra, setStoppingInfra] = useState(false);
+
+    // Compute filtered expenses based on date range
+    const filteredExpenses = useMemo(() => {
+        if (!dateRange) return expenses;
+        return expenses.filter(expense =>
+            expense.Timestamp &&
+            expense.Timestamp >= dateRange.startDate &&
+            expense.Timestamp <= dateRange.endDate
+        );
+    }, [expenses, dateRange]);
 
     // Load all data on component mount
     useEffect(() => {
@@ -213,7 +223,7 @@ function App() {
                             <button onClick={() => setCurrentPage('dashboard')}>📊 Dashboard</button>
                         </li>
                         <li className={currentPage === 'expenses' ? 'active' : ''}>
-                            <button onClick={() => setCurrentPage('expenses')}>📋 Expenses ({expenses.length})</button>
+                            <button onClick={() => setCurrentPage('expenses')}>📋 Expenses ({filteredExpenses.length})</button>
                         </li>
                         <li className={currentPage === 'add-expense' ? 'active' : ''}>
                             <button onClick={() => setCurrentPage('add-expense')}>➕ Add Expense</button>
