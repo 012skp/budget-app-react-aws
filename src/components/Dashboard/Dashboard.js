@@ -13,13 +13,14 @@ import {
 } from "recharts";
 
 import { expenseAPI } from '../../services/api';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useMemo} from 'react';
 
 
 import {getUserName, getCategoryName} from '../../utils/dataHelpers';
 
 function Dashboard({
                        dateRange,
+                       filteredExpenses,
                        expenses,
                        users,
                        categories,
@@ -32,20 +33,22 @@ function Dashboard({
 
     const { startDate, endDate } = dateRange;
 
-    const filteredExpenses = expenses.filter(expense =>
-        expense.Timestamp &&
-        expense.Timestamp >= startDate &&
-        expense.Timestamp <= endDate
+    // Total of all expenses (no date filter)
+    const totalExpenses = useMemo(() =>
+        expenses.reduce(
+            (sum, expense) => sum + parseFloat(expense.Amount || 0),
+            0
+        ),
+        [expenses]
     );
 
-    const totalExpenses = expenses.reduce(
-        (sum, expense) => sum + parseFloat(expense.Amount || 0),
-        0
-    );
-
-    const monthlyExpenses = filteredExpenses.reduce(
-        (sum, expense) => sum + parseFloat(expense.Amount || 0),
-        0
+    // Total of filtered expenses (date range)
+    const monthlyExpenses = useMemo(() =>
+        filteredExpenses.reduce(
+            (sum, expense) => sum + parseFloat(expense.Amount || 0),
+            0
+        ),
+        [filteredExpenses]
     );
 
     const loadDashboardData = async () => {

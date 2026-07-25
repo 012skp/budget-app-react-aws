@@ -145,6 +145,7 @@ function App() {
             case 'dashboard':
                 return <Dashboard
                     dateRange={dateRange}
+                    filteredExpenses={filteredExpenses}
                     expenses={expenses}
                     users={users}
                     categories={categories}
@@ -154,7 +155,7 @@ function App() {
                 />;
             case 'expenses':
                 return <ExpenseList
-                    expenses={expenses}
+                    filteredExpenses={filteredExpenses}
                     users={users}
                     categories={categories}
                     dateRange={dateRange}
@@ -170,6 +171,7 @@ function App() {
             default:
                 return <Dashboard
                     dateRange={dateRange}
+                    filteredExpenses={filteredExpenses}
                     expenses={expenses}
                     users={users}
                     categories={categories}

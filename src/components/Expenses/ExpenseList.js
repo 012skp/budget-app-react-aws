@@ -4,7 +4,7 @@ import { expenseAPI } from '../../services/api';
 
 import React, { useState } from 'react';
 
-function ExpenseList({expenses, users, categories, dateRange, loading, onRefresh}) {
+function ExpenseList({filteredExpenses, users, categories, dateRange, loading, onRefresh}) {
     const [editingExpenseId, setEditingExpenseId] = useState(null);
 
     const [editForm, setEditForm] = useState({
@@ -14,14 +14,8 @@ function ExpenseList({expenses, users, categories, dateRange, loading, onRefresh
         Description: ''
     });
 
-    // Filter expenses based on the dateRange prop
-    const filteredExpenses = dateRange
-        ? expenses.filter(expense =>
-            expense.Timestamp &&
-            expense.Timestamp >= dateRange.startDate &&
-            expense.Timestamp <= dateRange.endDate
-        )
-        : expenses;
+    // Filtering is now done in App – use the directly passed filteredExpenses
+    // No need to filter again
 
     const handleEditClick = (expense) => {
 
