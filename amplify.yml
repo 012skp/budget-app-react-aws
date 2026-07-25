@@ -1,0 +1,18 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - npm install --legacy-peer-deps
+    build:
+      commands:
+        - npm run build
+        - cd lambda && zip -r ../lambda.zip . && cd ..
+        - aws lambda update-function-code --function-name budget-app-api --zip-file fileb://lambda.zip --region ap-south-2
+  artifacts:
+    baseDirectory: build
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
