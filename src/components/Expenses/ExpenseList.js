@@ -3,7 +3,8 @@ import { expenseAPI } from '../../services/api';
 import React, { useState, useMemo } from 'react';
 
 function ExpenseList({filteredExpenses, users, categories, dateRange, loading, onRefresh}) {
-    const [editingExpenseId, setEditingExpenseId] = useState(null);
+    // Modal state
+    const [selectedExpense, setSelectedExpense] = useState(null);
     const [editForm, setEditForm] = useState({
         UserId: '',
         CategoryId: '',
@@ -15,8 +16,8 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
     const [searchText, setSearchText] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('');
     const [userFilter, setUserFilter] = useState('');
-    const [sortField, setSortField] = useState('Timestamp'); // Timestamp, Amount, Description
-    const [sortDirection, setSortDirection] = useState('desc'); // asc / desc
+    const [sortField, setSortField] = useState('Timestamp');
+    const [sortDirection, setSortDirection] = useState('desc');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -24,13 +25,11 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
     const processedExpenses = useMemo(() => {
         let list = [...filteredExpenses];
 
-        // Text search on description (case‑insensitive)
         if (searchText.trim()) {
             const lower = searchText.toLowerCase();
             list = list.filter(e => e.Description && e.Description.toLowerCase().includes(lower));
         }
 
-        // Category filter
         if (categoryFilter) {
             const catId = Number(categoryFilter);
             if (!isNaN(catId)) {
@@ -38,7 +37,6 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
             }
         }
 
-        // User filter
         if (userFilter) {
             const userId = Number(userFilter);
             if (!isNaN(userId)) {
@@ -46,7 +44,6 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
             }
         }
 
-        // Sort
         list.sort((a, b) => {
             let valA, valB;
             if (sortField === 'Timestamp') {
@@ -55,7 +52,7 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
             } else if (sortField === 'Amount') {
                 valA = parseFloat(a.Amount) || 0;
                 valB = parseFloat(b.Amount) || 0;
-            } else { // Description
+            } else {
                 valA = (a.Description || '').toLowerCase();
                 valB = (b.Description || '').toLowerCase();
             }
@@ -104,9 +101,9 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
         setCurrentPage(prev => Math.min(totalPages, prev + 1));
     };
 
-    // Editing handlers unchanged
-    const handleEditClick = (expense) => {
-        setEditingExpenseId(expense.ExpenseId);
+    // Row click → open modal
+    const handleRowClick = (expense) => {
+        setSelectedExpense(expense);
         setEditForm({
             UserId: expense.UserId,
             CategoryId: expense.CategoryId,
@@ -115,17 +112,18 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
         });
     };
 
+    // Modal actions
     const handleSave = async () => {
         try {
             await expenseAPI.updateExpense(
-                editingExpenseId,
+                selectedExpense.ExpenseId,
                 editForm.UserId,
                 editForm.CategoryId,
                 editForm.Amount,
                 editForm.Description
             );
             alert('Expense updated successfully');
-            setEditingExpenseId(null);
+            setSelectedExpense(null);
             if (onRefresh) {
                 await onRefresh();
             }
@@ -135,16 +133,13 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
         }
     };
 
-    const handleCancel = () => {
-        setEditingExpenseId(null);
-    };
-
     const handleDelete = async (expenseId) => {
         const confirmed = window.confirm(`Delete expense #${expenseId}?`);
         if (!confirmed) return;
         try {
             await expenseAPI.deleteExpense(expenseId);
             alert('Expense deleted successfully');
+            setSelectedExpense(null);
             if (onRefresh) {
                 await onRefresh();
             }
@@ -243,70 +238,20 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
                             >
                                 Amount{sortArrow('Amount')}
                             </span>
-                            <span>Actions</span>
                         </div>
                         {paginatedExpenses.map(expense => (
-                            editingExpenseId === expense.ExpenseId ? (
-                                <div key={expense.ExpenseId} className="table-row">
-                                    <span>{expense.ExpenseId}</span>
-                                    <span>{expense.Timestamp}</span>
-                                    <input
-                                        value={editForm.Description}
-                                        onChange={(e) =>
-                                            setEditForm({...editForm, Description: e.target.value})
-                                        }
-                                    />
-                                    <select
-                                        value={editForm.CategoryId}
-                                        onChange={(e) =>
-                                            setEditForm({...editForm, CategoryId: Number(e.target.value)})
-                                        }
-                                    >
-                                        {categories.map(category => (
-                                            <option key={category.CategoryId} value={category.CategoryId}>
-                                                {category.CategoryName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <select
-                                        value={editForm.UserId}
-                                        onChange={(e) =>
-                                            setEditForm({...editForm, UserId: Number(e.target.value)})
-                                        }
-                                    >
-                                        {users.map(user => (
-                                            <option key={user.UserId} value={user.UserId}>
-                                                {user.Name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        value={editForm.Amount}
-                                        onChange={(e) =>
-                                            setEditForm({...editForm, Amount: e.target.value})
-                                        }
-                                    />
-                                    <span>
-                                        <button onClick={handleSave}>💾 Save</button>
-                                        <button onClick={handleCancel}>❌ Cancel</button>
-                                    </span>
-                                </div>
-                            ) : (
-                                <div key={expense.ExpenseId} className="table-row">
-                                    <span>{expense.ExpenseId}</span>
-                                    <span>{expense.Timestamp}</span>
-                                    <span>{expense.Description}</span>
-                                    <span>{getCategoryName(expense.CategoryId, categories)}</span>
-                                    <span>{getUserName(expense.UserId, users)}</span>
-                                    <span>₹{parseFloat(expense.Amount).toFixed(2)}</span>
-                                    <span>
-                                        <button onClick={() => handleEditClick(expense)}>✏️ Edit</button>
-                                        <button onClick={() => handleDelete(expense.ExpenseId)}>🗑 Delete</button>
-                                    </span>
-                                </div>
-                            )
+                            <div
+                                key={expense.ExpenseId}
+                                className="table-row"
+                                onClick={() => handleRowClick(expense)}
+                            >
+                                <span>{expense.ExpenseId}</span>
+                                <span>{expense.Timestamp}</span>
+                                <span>{expense.Description}</span>
+                                <span>{getCategoryName(expense.CategoryId, categories)}</span>
+                                <span>{getUserName(expense.UserId, users)}</span>
+                                <span>₹{parseFloat(expense.Amount).toFixed(2)}</span>
+                            </div>
                         ))}
                     </div>
 
@@ -323,6 +268,68 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
                 </>
             ) : (
                 <p>No expenses found{rangeLabel}.</p>
+            )}
+
+            {/* Modal for editing / deleting */}
+            {selectedExpense && (
+                <div className="modal-overlay" onClick={() => setSelectedExpense(null)}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                        <h3>Edit Expense #{selectedExpense.ExpenseId}</h3>
+                        <p><strong>Date:</strong> {selectedExpense.Timestamp}</p>
+
+                        <label>Description</label>
+                        <input
+                            value={editForm.Description}
+                            onChange={(e) =>
+                                setEditForm({...editForm, Description: e.target.value})
+                            }
+                        />
+
+                        <label>Category</label>
+                        <select
+                            value={editForm.CategoryId}
+                            onChange={(e) =>
+                                setEditForm({...editForm, CategoryId: Number(e.target.value)})
+                            }
+                        >
+                            {categories.map(cat => (
+                                <option key={cat.CategoryId} value={cat.CategoryId}>
+                                    {cat.CategoryName}
+                                </option>
+                            ))}
+                        </select>
+
+                        <label>User</label>
+                        <select
+                            value={editForm.UserId}
+                            onChange={(e) =>
+                                setEditForm({...editForm, UserId: Number(e.target.value)})
+                            }
+                        >
+                            {users.map(u => (
+                                <option key={u.UserId} value={u.UserId}>
+                                    {u.Name}
+                                </option>
+                            ))}
+                        </select>
+
+                        <label>Amount</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={editForm.Amount}
+                            onChange={(e) =>
+                                setEditForm({...editForm, Amount: e.target.value})
+                            }
+                        />
+
+                        <div className="modal-actions">
+                            <button onClick={handleSave}>💾 Save</button>
+                            <button onClick={() => handleDelete(selectedExpense.ExpenseId)}>🗑 Delete</button>
+                            <button onClick={() => setSelectedExpense(null)}>❌ Cancel</button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
