@@ -4,7 +4,7 @@ import { expenseAPI } from '../../services/api';
 
 import React, { useState } from 'react';
 
-function ExpenseList({expenses, users, categories, loading, onRefresh}) {
+function ExpenseList({expenses, users, categories, dateRange, loading, onRefresh}) {
     const [editingExpenseId, setEditingExpenseId] = useState(null);
 
     const [editForm, setEditForm] = useState({
@@ -13,6 +13,15 @@ function ExpenseList({expenses, users, categories, loading, onRefresh}) {
         Amount: '',
         Description: ''
     });
+
+    // Filter expenses based on the dateRange prop
+    const filteredExpenses = dateRange
+        ? expenses.filter(expense =>
+            expense.Timestamp &&
+            expense.Timestamp >= dateRange.startDate &&
+            expense.Timestamp <= dateRange.endDate
+        )
+        : expenses;
 
     const handleEditClick = (expense) => {
 
@@ -84,13 +93,16 @@ function ExpenseList({expenses, users, categories, loading, onRefresh}) {
         }
     };
 
+    const rangeLabel = dateRange
+        ? ` (${dateRange.startDate} to ${dateRange.endDate})`
+        : '';
 
     return (
         <div className="page">
-            <h2>📋 All Expenses</h2>
+            <h2>📋 All Expenses{rangeLabel}</h2>
             {loading ? (
                 <p>🔄 Loading expenses from AWS...</p>
-            ) : expenses.length > 0 ? (
+            ) : filteredExpenses.length > 0 ? (
                 <div className="expense-table">
                     <div className="table-header">
                         <span>Date</span>
@@ -100,7 +112,7 @@ function ExpenseList({expenses, users, categories, loading, onRefresh}) {
                         <span>Amount</span>
                         <span>Actions</span>
                     </div>
-                    {expenses.map(expense => (
+                    {filteredExpenses.map(expense => (
 
                         editingExpenseId === expense.ExpenseId ? (
 
@@ -229,7 +241,7 @@ function ExpenseList({expenses, users, categories, loading, onRefresh}) {
                     ))}
                 </div>
             ) : (
-                <p>No expenses found.</p>
+                <p>No expenses found{rangeLabel}.</p>
             )}
         </div>
     );

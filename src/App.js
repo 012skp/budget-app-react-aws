@@ -143,7 +143,14 @@ function App() {
                     onRefresh={loadAllData}
                 />;
             case 'expenses':
-                return <ExpenseList expenses={expenses} users={users} categories={categories} loading={loading} onRefresh={loadAllData} />;
+                return <ExpenseList
+                    expenses={expenses}
+                    users={users}
+                    categories={categories}
+                    dateRange={dateRange}
+                    loading={loading}
+                    onRefresh={loadAllData}
+                />;
             case 'add-expense':
                 return <AddExpense users={users} categories={categories} onExpenseAdded={loadAllData} />;
             case 'users':
