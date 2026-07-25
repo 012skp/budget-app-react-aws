@@ -84,7 +84,39 @@ function Dashboard({
         loadDashboardData();
     }, [startDate, endDate]);
 
+    // Compute user‑category breakdown for stacked bar chart
+    const userCategoryBreakdown = useMemo(() => {
+        const catNames = categories.reduce((acc, cat) => {
+            acc[cat.CategoryId] = cat.CategoryName;
+            return acc;
+        }, {});
+        const userNames = users.reduce((acc, u) => {
+            acc[u.UserId] = u.Name;
+            return acc;
+        }, {});
+        const map = {};
+        filteredExpenses.forEach(exp => {
+            const userId = exp.UserId;
+            const catId = exp.CategoryId;
+            const userName = userNames[userId] || `User ${userId}`;
+            const catName = catNames[catId] || `Category ${catId}`;
+            if (!map[userId]) {
+                map[userId] = { name: userName };
+            }
+            const amount = parseFloat(exp.Amount) || 0;
+            map[userId][catName] = (map[userId][catName] || 0) + amount;
+        });
+        return Object.values(map);
+    }, [filteredExpenses, users, categories]);
 
+    const categoryNames = useMemo(() => {
+        const set = new Set();
+        filteredExpenses.forEach(exp => {
+            const cat = categories.find(c => c.CategoryId === exp.CategoryId);
+            if (cat) set.add(cat.CategoryName);
+        });
+        return Array.from(set);
+    }, [filteredExpenses, categories]);
 
     const COLORS = [
         "#0088FE",
@@ -95,14 +127,10 @@ function Dashboard({
         "#82CA9D"
     ];
 
-
-
     const handleRefresh = async () => {
         await onRefresh();
         await loadDashboardData();
     };
-
-
 
     return (
         <div className="dashboard">
@@ -195,6 +223,31 @@ function Dashboard({
                                         />
                                     ))}
                                 </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                <div className="chart-card">
+                    <div className="chart-container">
+                        <h3>Expense Per User Per Category</h3>
+
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={userCategoryBreakdown}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="name" />
+                                <YAxis />
+                                <Tooltip />
+                                <Legend />
+
+                                {categoryNames.map((name, idx) => (
+                                    <Bar
+                                        key={name}
+                                        dataKey={name}
+                                        stackId="a"
+                                        fill={COLORS[idx % COLORS.length]}
+                                    />
+                                ))}
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
