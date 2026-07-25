@@ -175,7 +175,7 @@ function Dashboard({
 
                 <div className="chart-card">
                     <div className="chart-container">
-                        <h3>Expenses By Category</h3>
+                        <h3>Expenses Per Category</h3>
 
                         <ResponsiveContainer width="100%" height={300}>
                             <PieChart>
@@ -205,7 +205,7 @@ function Dashboard({
 
                 <div className="chart-card">
                     <div className="chart-container">
-                        <h3>Expenses By User</h3>
+                        <h3>Expenses Per User</h3>
 
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={userBreakdown}>
