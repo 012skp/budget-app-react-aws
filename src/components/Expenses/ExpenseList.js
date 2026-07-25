@@ -14,6 +14,7 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
     // Filter / sort / pagination state
     const [searchText, setSearchText] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('');
+    const [userFilter, setUserFilter] = useState('');
     const [sortField, setSortField] = useState('Timestamp'); // Timestamp, Amount, Description
     const [sortDirection, setSortDirection] = useState('desc'); // asc / desc
     const [currentPage, setCurrentPage] = useState(1);
@@ -34,6 +35,14 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
             const catId = Number(categoryFilter);
             if (!isNaN(catId)) {
                 list = list.filter(e => Number(e.CategoryId) === catId);
+            }
+        }
+
+        // User filter
+        if (userFilter) {
+            const userId = Number(userFilter);
+            if (!isNaN(userId)) {
+                list = list.filter(e => Number(e.UserId) === userId);
             }
         }
 
@@ -63,7 +72,7 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
         });
 
         return list;
-    }, [filteredExpenses, searchText, categoryFilter, sortField, sortDirection]);
+    }, [filteredExpenses, searchText, categoryFilter, userFilter, sortField, sortDirection]);
 
     // Pagination
     const totalPages = Math.ceil(processedExpenses.length / itemsPerPage);
@@ -179,6 +188,20 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
                         {categories.map(cat => (
                             <option key={cat.CategoryId} value={cat.CategoryId}>
                                 {cat.CategoryName}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="filter-group">
+                    <label>User:</label>
+                    <select
+                        value={userFilter}
+                        onChange={e => { setUserFilter(e.target.value); setCurrentPage(1); }}
+                    >
+                        <option value="">All</option>
+                        {users.map(u => (
+                            <option key={u.UserId} value={u.UserId}>
+                                {u.Name}
                             </option>
                         ))}
                     </select>
