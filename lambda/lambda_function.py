@@ -151,7 +151,10 @@ class InfrastructureManager:
         """Append a line to /var/log/infra_access.log on the EC2 instance (best effort)."""
         try:
             ssm = boto3.client('ssm')
-            cmd = f"echo '$(date) - {action}' >> /var/log/infra_access.log"
+
+            # ✅ Use double quotes so $(date) gets executed by shell
+            cmd = f'echo "$(date) - {action}" >> /var/log/infra_access.log'
+
             ssm.send_command(
                 InstanceIds=[self.instance_id],
                 DocumentName='AWS-RunShellScript',
@@ -160,6 +163,7 @@ class InfrastructureManager:
             self.log(f"Access logged for action: {action}")
         except Exception as e:
             self.log(f"Failed to write access log: {e}")
+
 
 
 def lambda_handler(event, context):

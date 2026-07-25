@@ -68,10 +68,38 @@ function App() {
             console.error('❌ API Error:', error);
             setApiStatus('error');
 
-            // Fallback to sample data (optional)
-            setExpenses([]);
-            setUsers([]);
-            setCategories([]);
+            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to load data. Using sample data instead.';
+            alert(msg);
+
+            // Set sample data for testing UI
+            setExpenses([
+                {
+                    expense_id: '1',
+                    amount: 1250.00,
+                    category_name: 'Food',
+                    description: 'Grocery shopping',
+                    expense_date: '2024-06-15',
+                    user_name: 'John Doe'
+                },
+                {
+                    expense_id: '2',
+                    amount: 850.00,
+                    category_name: 'Transport',
+                    description: 'Uber rides',
+                    expense_date: '2024-06-14',
+                    user_name: 'Jane Smith'
+                }
+            ]);
+
+            setUsers([
+                { user_id: '1', name: 'John Doe', description: 'Primary user' },
+                { user_id: '2', name: 'Jane Smith', description: 'Secondary user' }
+            ]);
+
+            setCategories([
+                { category_id: '1', category_name: 'Food', description: 'Food and groceries' },
+                { category_id: '2', category_name: 'Transport', description: 'Transportation costs' }
+            ]);
         } finally {
             setLoading(false);
         }
