@@ -201,9 +201,6 @@ def lambda_handler(event, context):
         data = event
 
     try:
-        # Log access at entry point – single place for all actions
-        infra.log_access(action)
-
         # Infrastructure management actions
         if action == 'start':
             # For direct start action, we should also handle stopping state
@@ -270,6 +267,8 @@ def lambda_handler(event, context):
                         'ip': public_ip
                     })
                 }
+
+            infra.log_access(action)
 
             # Connect to database
             connection = pymysql.connect(host=public_ip, **DB_CONFIG)
