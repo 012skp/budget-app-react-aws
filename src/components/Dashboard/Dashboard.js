@@ -25,7 +25,8 @@ function Dashboard({
                        users,
                        categories,
                        loading,
-                       onRefresh
+                       onRefresh,
+                       onNavigate          // <-- NEW prop
                    }) {
 
     const [categoryBreakdown, setCategoryBreakdown] = useState([]);
@@ -149,7 +150,12 @@ function Dashboard({
             </div>
 
             <div className="stats-cards">
-                <div className="stat-card">
+                {/* Clickable Expenses card */}
+                <button
+                    className="stat-card"
+                    type="button"
+                    onClick={() => onNavigate && onNavigate('expenses')}
+                >
                     <h3>Total Expenses</h3>
                     <p className="amount">
                         ₹{totalExpenses.toLocaleString('en-IN', {
@@ -157,19 +163,29 @@ function Dashboard({
                     })}
                     </p>
                     <small>{expenses.length} transactions</small>
-                </div>
+                </button>
 
-                <div className="stat-card">
+                {/* Clickable Categories card */}
+                <button
+                    className="stat-card"
+                    type="button"
+                    onClick={() => onNavigate && onNavigate('categories')}
+                >
                     <h3>Categories</h3>
                     <p className="count">{categories.length}</p>
                     <small>Active categories</small>
-                </div>
+                </button>
 
-                <div className="stat-card">
+                {/* Clickable Users card */}
+                <button
+                    className="stat-card"
+                    type="button"
+                    onClick={() => onNavigate && onNavigate('users')}
+                >
                     <h3>Users</h3>
                     <p className="count">{users.length}</p>
                     <small>Active users</small>
-                </div>
+                </button>
             </div>
             <div className="dashboard-charts">
 

@@ -23,6 +23,11 @@ function App() {
     const [apiStatus, setApiStatus] = useState('connecting');
     const [stoppingInfra, setStoppingInfra] = useState(false);
 
+    // Navigation callback – used by Dashboard to switch pages
+    const handleNavigate = useCallback((page) => {
+        setCurrentPage(page);
+    }, []);
+
     // Compute filtered expenses based on date range (no need to filter again, but keep for consistency)
     const filteredExpenses = useMemo(() => {
         if (!dateRange) return expenses;
@@ -154,6 +159,7 @@ function App() {
                     loading={loading}
                     apiStatus={apiStatus}
                     onRefresh={loadAllData}
+                    onNavigate={handleNavigate}   // <-- NEW prop
                 />;
             case 'expenses':
                 return <ExpenseList
@@ -180,6 +186,7 @@ function App() {
                     loading={loading}
                     apiStatus={apiStatus}
                     onRefresh={loadAllData}
+                    onNavigate={handleNavigate}   // <-- NEW prop
                 />;
         }
     };
