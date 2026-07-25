@@ -132,16 +132,6 @@ function Dashboard({
                 </div>
 
                 <div className="stat-card">
-                    <h3>Selected Range ({startDate} to {endDate})</h3>
-                    <p className="amount">
-                        ₹{monthlyExpenses.toLocaleString('en-IN', {
-                        minimumFractionDigits: 2
-                    })}
-                    </p>
-                    <small>{filteredExpenses.length} transactions</small>
-                </div>
-
-                <div className="stat-card">
                     <h3>Categories</h3>
                     <p className="count">{categories.length}</p>
                     <small>Active categories</small>
