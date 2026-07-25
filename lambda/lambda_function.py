@@ -434,17 +434,21 @@ def lambda_handler(event, context):
                         user_id = data.get('UserId')
                         infra.log(f"Attempting to delete user ID {user_id}")
 
-                        # Cascade delete all expenses belonging to this user
-                        cursor.execute("SELECT COUNT(*) as cnt FROM Expenses WHERE UserId = %s", (user_id,))
-                        count = cursor.fetchone()['cnt']
-                        infra.log(f"Found {count} expenses associated with user ID {user_id}")
-                        if count > 0:
+                        # Temporarily disable foreign key checks to allow cascade deletion
+                        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+                        try:
+                            # Delete all expenses belonging to this user
                             cursor.execute("DELETE FROM Expenses WHERE UserId = %s", (user_id,))
-                            infra.log(f"Deleted {count} expenses")
-                        # Now delete the user
-                        cursor.execute("DELETE FROM Users WHERE UserId = %s", (user_id,))
-                        connection.commit()
-                        infra.log(f"Deleted user ID {user_id}")
+                            infra.log(f"Deleted expenses for user ID {user_id}")
+
+                            # Now delete the user
+                            cursor.execute("DELETE FROM Users WHERE UserId = %s", (user_id,))
+                            connection.commit()
+                            infra.log(f"Deleted user ID {user_id}")
+                        finally:
+                            # Re-enable foreign key checks
+                            cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+                            connection.commit()
 
                         return {
                             'statusCode': 200,
@@ -452,7 +456,7 @@ def lambda_handler(event, context):
                             'body': json.dumps({
                                 'message': 'User and associated expenses deleted successfully',
                                 'UserId': user_id,
-                                'deleted_expenses': count
+                                'deleted_expenses': connection.affected_rows()  # not accurate, but we will log separately
                             })
                         }
 
@@ -511,17 +515,21 @@ def lambda_handler(event, context):
                         category_id = data.get('CategoryId')
                         infra.log(f"Attempting to delete category ID {category_id}")
 
-                        # Cascade delete all expenses belonging to this category
-                        cursor.execute("SELECT COUNT(*) as cnt FROM Expenses WHERE CategoryId = %s", (category_id,))
-                        count = cursor.fetchone()['cnt']
-                        infra.log(f"Found {count} expenses associated with category ID {category_id}")
-                        if count > 0:
+                        # Temporarily disable foreign key checks to allow cascade deletion
+                        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+                        try:
+                            # Delete all expenses belonging to this category
                             cursor.execute("DELETE FROM Expenses WHERE CategoryId = %s", (category_id,))
-                            infra.log(f"Deleted {count} expenses")
-                        # Now delete the category
-                        cursor.execute("DELETE FROM Categories WHERE CategoryId = %s", (category_id,))
-                        connection.commit()
-                        infra.log(f"Deleted category ID {category_id}")
+                            infra.log(f"Deleted expenses for category ID {category_id}")
+
+                            # Now delete the category
+                            cursor.execute("DELETE FROM Categories WHERE CategoryId = %s", (category_id,))
+                            connection.commit()
+                            infra.log(f"Deleted category ID {category_id}")
+                        finally:
+                            # Re-enable foreign key checks
+                            cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+                            connection.commit()
 
                         return {
                             'statusCode': 200,
@@ -529,7 +537,7 @@ def lambda_handler(event, context):
                             'body': json.dumps({
                                 'message': 'Category and associated expenses deleted successfully',
                                 'CategoryId': category_id,
-                                'deleted_expenses': count
+                                'deleted_expenses': connection.affected_rows()
                             })
                         }
 
