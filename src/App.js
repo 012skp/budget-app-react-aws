@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import './App.css';
 import { expenseAPI, userAPI, categoryAPI, testAPI, stopInfraAPI } from './services/api';
 import { dateHelpers } from './utils/dateHelpers';
@@ -23,7 +23,7 @@ function App() {
     const [apiStatus, setApiStatus] = useState('connecting');
     const [stoppingInfra, setStoppingInfra] = useState(false);
 
-    // Compute filtered expenses based on date range
+    // Compute filtered expenses based on date range (no need to filter again, but keep for consistency)
     const filteredExpenses = useMemo(() => {
         if (!dateRange) return expenses;
         return expenses.filter(expense =>
@@ -33,43 +33,8 @@ function App() {
         );
     }, [expenses, dateRange]);
 
-    // Load all data on component mount
-    useEffect(() => {
-        loadAllData();
-    }, []);
-
-
-
-    const handleStopInfra = async () => {
-        const confirmed = window.confirm(
-            "This will stop your AWS infrastructure. Continue?"
-        );
-
-        if (!confirmed) {
-            return;
-        }
-
-        try {
-            setStoppingInfra(true);
-
-            const response = await stopInfraAPI();
-
-            alert(
-                response.data.message ||
-                "Infrastructure stop request submitted."
-            );
-
-        } catch (error) {
-            console.error(error);
-
-            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to stop infrastructure.';
-            alert(msg);
-        } finally {
-            setStoppingInfra(false);
-        }
-    };
-
-    const loadAllData = async () => {
+    // Fetch all data (users, categories, and expenses for current date range)
+    const loadAllData = useCallback(async () => {
         setLoading(true);
         setApiStatus('connecting');
 
@@ -80,21 +45,24 @@ function App() {
             const testResponse = await testAPI();
             console.log('✅ API Test Response:', testResponse.data);
 
-            // Load all data in parallel
-            const [expensesRes, usersRes, categoriesRes] = await Promise.all([
-                expenseAPI.getExpenses(),
+            // Fetch users and categories in parallel
+            const [usersRes, categoriesRes] = await Promise.all([
                 userAPI.getUsers(),
                 categoryAPI.getCategories()
             ]);
 
-            console.log('📊 Expenses Response:', expensesRes.data);
             console.log('👥 Users Response:', usersRes.data);
             console.log('🏷️ Categories Response:', categoriesRes.data);
 
-            // Set data from API responses
-            setExpenses(expensesRes.data.expenses || []);
             setUsers(usersRes.data.users || []);
             setCategories(categoriesRes.data.categories || []);
+
+            // Fetch expenses for the current date range
+            const { startDate, endDate } = dateRange;
+            const expensesRes = await expenseAPI.getExpensesByDateRange(startDate, endDate);
+            console.log('📊 Expenses Response:', expensesRes.data);
+
+            setExpenses(expensesRes.data.expenses || []);
 
             setApiStatus('connected');
             console.log('✅ All data loaded successfully!');
@@ -138,8 +106,41 @@ function App() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [dateRange]); // Re‑create loadAllData whenever dateRange changes
 
+    // Load all data on mount and whenever dateRange changes
+    useEffect(() => {
+        loadAllData();
+    }, [loadAllData]);
+
+    const handleStopInfra = async () => {
+        const confirmed = window.confirm(
+            "This will stop your AWS infrastructure. Continue?"
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            setStoppingInfra(true);
+
+            const response = await stopInfraAPI();
+
+            alert(
+                response.data.message ||
+                "Infrastructure stop request submitted."
+            );
+
+        } catch (error) {
+            console.error(error);
+
+            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to stop infrastructure.';
+            alert(msg);
+        } finally {
+            setStoppingInfra(false);
+        }
+    };
 
     const renderPage = () => {
         switch(currentPage) {
