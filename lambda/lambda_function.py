@@ -200,12 +200,20 @@ def lambda_handler(event, context):
         action = event.get('action', '').lower()
         data = event
 
+    # Validate action
+    if not action:
+        return {
+            'statusCode': 400,
+            'headers': cors_headers,
+            'body': json.dumps({'error': 'No action provided'})
+        }
+
     try:
+        # Log access at entry point – single place for all actions
+        infra.log_access(action)
+
         # Infrastructure management actions
         if action == 'start':
-            # Log the invocation
-            infra.log_access('start')
-
             # For direct start action, we should also handle stopping state
             state, _ = infra.get_instance_status()
             if state == 'stopping':
@@ -229,9 +237,6 @@ def lambda_handler(event, context):
             }
 
         elif action == 'stop':
-            # Log the invocation
-            infra.log_access('stop')
-
             response = ec2.stop_instances(InstanceIds=[INSTANCE_ID])
             return {
                 'statusCode': 200,
@@ -244,9 +249,6 @@ def lambda_handler(event, context):
             }
 
         elif action == 'status':
-            # Log the invocation
-            infra.log_access('status')
-
             state, public_ip = infra.get_instance_status()
             return {
                 'statusCode': 200,
@@ -276,9 +278,6 @@ def lambda_handler(event, context):
                         'ip': public_ip
                     })
                 }
-
-            # Log the access (action that required DB)
-            infra.log_access(action)
 
             # Connect to database
             connection = pymysql.connect(host=public_ip, **DB_CONFIG)
