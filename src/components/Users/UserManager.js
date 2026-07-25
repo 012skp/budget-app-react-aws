@@ -27,7 +27,11 @@ function UserManager({ users, loading, onRefresh }) {
             onRefresh();
         } catch (error) {
             console.error(error);
-            alert('Failed to update user');
+            const msg =
+                error.response?.data?.error ||
+                error.response?.data?.message ||
+                'Failed to update user';
+            alert(msg);
         }
     };
 
@@ -35,13 +39,21 @@ function UserManager({ users, loading, onRefresh }) {
         const confirmed = window.confirm(`Delete user #${userId}?`);
         if (!confirmed) return;
         try {
-            await userAPI.deleteUser(userId);
-            alert('User deleted successfully');
+            const response = await userAPI.deleteUser(userId);
+            const data = response.data;
+            const deletedExp = data.deleted_expenses || 0;
+            alert(
+                `User deleted successfully. ${deletedExp} associated expense(s) were also deleted.`
+            );
             setSelectedUser(null);
             onRefresh();
         } catch (error) {
             console.error(error);
-            alert('Failed to delete user');
+            const msg =
+                error.response?.data?.error ||
+                error.response?.data?.message ||
+                'Failed to delete user';
+            alert(msg);
         }
     };
 
@@ -51,14 +63,18 @@ function UserManager({ users, loading, onRefresh }) {
             return;
         }
         try {
-            await userAPI.addUser(newName, newDescription);
+            const response = await userAPI.addUser(newName, newDescription);
             alert('User added successfully');
             setNewName('');
             setNewDescription('');
             onRefresh();
         } catch (error) {
             console.error(error);
-            alert('Failed to add user');
+            const msg =
+                error.response?.data?.error ||
+                error.response?.data?.message ||
+                'Failed to add user';
+            alert(msg);
         }
     };
 

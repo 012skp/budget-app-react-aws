@@ -220,7 +220,7 @@ def lambda_handler(event, context):
                 with connection.cursor(pymysql.cursors.DictCursor) as cursor:
 
                     # EXPENSE ACTIONS
-                    if action == 'get_expenses' or action == 'query':  # query for backward compatibility
+                    if action == 'get_expenses' or action == 'query':
                         cursor.execute("SELECT * FROM Expenses ORDER BY Timestamp DESC")
                         expenses = cursor.fetchall()
                         infra.log(f"Retrieved {len(expenses)} expenses")
@@ -431,13 +431,16 @@ def lambda_handler(event, context):
                         }
 
                     elif action == 'delete_user':
-                        # Cascade delete all expenses belonging to this user
                         user_id = data.get('UserId')
+                        infra.log(f"Attempting to delete user ID {user_id}")
+
+                        # Cascade delete all expenses belonging to this user
                         cursor.execute("SELECT COUNT(*) as cnt FROM Expenses WHERE UserId = %s", (user_id,))
                         count = cursor.fetchone()['cnt']
+                        infra.log(f"Found {count} expenses associated with user ID {user_id}")
                         if count > 0:
                             cursor.execute("DELETE FROM Expenses WHERE UserId = %s", (user_id,))
-                            infra.log(f"Deleted {count} expenses associated with user ID {user_id}")
+                            infra.log(f"Deleted {count} expenses")
                         # Now delete the user
                         cursor.execute("DELETE FROM Users WHERE UserId = %s", (user_id,))
                         connection.commit()
@@ -505,13 +508,16 @@ def lambda_handler(event, context):
                         }
 
                     elif action == 'delete_category':
-                        # Cascade delete all expenses belonging to this category
                         category_id = data.get('CategoryId')
+                        infra.log(f"Attempting to delete category ID {category_id}")
+
+                        # Cascade delete all expenses belonging to this category
                         cursor.execute("SELECT COUNT(*) as cnt FROM Expenses WHERE CategoryId = %s", (category_id,))
                         count = cursor.fetchone()['cnt']
+                        infra.log(f"Found {count} expenses associated with category ID {category_id}")
                         if count > 0:
                             cursor.execute("DELETE FROM Expenses WHERE CategoryId = %s", (category_id,))
-                            infra.log(f"Deleted {count} expenses associated with category ID {category_id}")
+                            infra.log(f"Deleted {count} expenses")
                         # Now delete the category
                         cursor.execute("DELETE FROM Categories WHERE CategoryId = %s", (category_id,))
                         connection.commit()
