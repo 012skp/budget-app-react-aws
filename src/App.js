@@ -198,7 +198,7 @@ function App() {
                         >
                             {stoppingInfra
                                 ? '⏳ Stopping...'
-                                : '🛑 Stop Infra'}
+                                : '🛑 Stop AWS Infra'}
                         </button>
                     )}
                     
