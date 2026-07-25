@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { expenseAPI, userAPI, categoryAPI, testAPI, stopInfraAPI } from './services/api';
-
+import { dateHelpers } from './utils/dateHelpers';
+import CalendarPicker from './components/Common/CalendarPicker';
 
 import Dashboard from './components/Dashboard/Dashboard';
 import ExpenseList from './components/Expenses/ExpenseList';
@@ -11,9 +12,9 @@ import CategoryManager from './components/Categories/CategoryManager'
 
 function App() {
     const [currentPage, setCurrentPage] = useState('dashboard');
-    const [selectedMonth, setSelectedMonth] = useState(() => {
-        const now = new Date();
-        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const [dateRange, setDateRange] = useState(() => {
+        const current = dateHelpers.getCurrentMonth();
+        return { startDate: current.start, endDate: current.end };
     });
     const [expenses, setExpenses] = useState([]);
     const [users, setUsers] = useState([]);
@@ -133,8 +134,7 @@ function App() {
         switch(currentPage) {
             case 'dashboard':
                 return <Dashboard
-                    selectedMonth={selectedMonth}
-                    setSelectedMonth={setSelectedMonth}
+                    dateRange={dateRange}
                     expenses={expenses}
                     users={users}
                     categories={categories}
@@ -152,8 +152,7 @@ function App() {
                 return <CategoryManager categories={categories} loading={loading} onRefresh={loadAllData} />;
             default:
                 return <Dashboard
-                    selectedMonth={selectedMonth}
-                    setSelectedMonth={setSelectedMonth}
+                    dateRange={dateRange}
                     expenses={expenses}
                     users={users}
                     categories={categories}
@@ -164,10 +163,17 @@ function App() {
         }
     };
 
+    const handleDateChange = (newRange) => {
+        setDateRange(newRange);
+    };
+
     return (
         <div className="app">
             <header className="app-header">
                 <h1>💰 Budget Tracker</h1>
+                <div className="calendar-bar">
+                    <CalendarPicker dateRange={dateRange} onDateChange={handleDateChange} />
+                </div>
                 <div className="api-status">
 
     <span className={`status-indicator ${apiStatus}`}>

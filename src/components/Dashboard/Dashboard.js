@@ -19,8 +19,7 @@ import React, {useEffect, useState} from 'react';
 import {getUserName, getCategoryName} from '../../utils/dataHelpers';
 
 function Dashboard({
-                       selectedMonth,
-                       setSelectedMonth,
+                       dateRange,
                        expenses,
                        users,
                        categories,
@@ -31,9 +30,12 @@ function Dashboard({
     const [categoryBreakdown, setCategoryBreakdown] = useState([]);
     const [userBreakdown, setUserBreakdown] = useState([]);
 
+    const { startDate, endDate } = dateRange;
+
     const filteredExpenses = expenses.filter(expense =>
         expense.Timestamp &&
-        expense.Timestamp.startsWith(selectedMonth)
+        expense.Timestamp >= startDate &&
+        expense.Timestamp <= endDate
     );
 
     const totalExpenses = expenses.reduce(
@@ -46,18 +48,8 @@ function Dashboard({
         0
     );
 
-    const years = Array.from(
-        {length: 10},
-        (_, i) => new Date().getFullYear() - 5 + i
-    );
-
     const loadDashboardData = async () => {
         try {
-            const [year, month] = selectedMonth.split("-");
-
-            const startDate = `${year}-${month}-01`;
-            const endDate = `${year}-${month}-31`;
-
             const [categoryRes, userRes] = await Promise.all([
                 expenseAPI.getExpensesByCategory(startDate, endDate),
                 expenseAPI.getExpensesByUser(startDate, endDate)
@@ -85,7 +77,7 @@ function Dashboard({
 
     useEffect(() => {
         loadDashboardData();
-    }, [selectedMonth]);
+    }, [startDate, endDate]);
 
 
 
@@ -113,47 +105,6 @@ function Dashboard({
                 <h2>📊 Dashboard</h2>
 
                 <div className="dashboard-controls">
-                    <div className="month-selector">
-
-                        <label>Year:</label>
-                        <select
-                            value={selectedMonth.split('-')[0]}
-                            onChange={(e) => {
-                                const month = selectedMonth.split('-')[1];
-                                setSelectedMonth(`${e.target.value}-${month}`);
-                            }}
-                        >
-                            {years.map(year => (
-                                <option key={year} value={year}>
-                                    {year}
-                                </option>
-                            ))}
-                        </select>
-
-                        <label>Month:</label>
-                        <select
-                            value={selectedMonth.split('-')[1]}
-                            onChange={(e) => {
-                                const year = selectedMonth.split('-')[0];
-                                setSelectedMonth(`${year}-${e.target.value}`);
-                            }}
-                        >
-                            <option value="01">January</option>
-                            <option value="02">February</option>
-                            <option value="03">March</option>
-                            <option value="04">April</option>
-                            <option value="05">May</option>
-                            <option value="06">June</option>
-                            <option value="07">July</option>
-                            <option value="08">August</option>
-                            <option value="09">September</option>
-                            <option value="10">October</option>
-                            <option value="11">November</option>
-                            <option value="12">December</option>
-                        </select>
-
-                    </div>
-
                     <button
                         className="refresh-btn"
                         onClick={handleRefresh}
@@ -176,7 +127,7 @@ function Dashboard({
                 </div>
 
                 <div className="stat-card">
-                    <h3>This Month ({selectedMonth})</h3>
+                    <h3>Selected Range ({startDate} to {endDate})</h3>
                     <p className="amount">
                         ₹{monthlyExpenses.toLocaleString('en-IN', {
                         minimumFractionDigits: 2
@@ -257,7 +208,7 @@ function Dashboard({
             </div>
 
             <div className="recent-expenses">
-                <h3>Recent Expenses ({selectedMonth})</h3>
+                <h3>Recent Expenses ({startDate} to {endDate})</h3>
 
                 {loading ? (
                     <p>🔄 Loading expenses from AWS...</p>
@@ -305,7 +256,7 @@ function Dashboard({
                         ))}
                     </div>
                 ) : (
-                    <p>No expenses found for {selectedMonth}</p>
+                    <p>No expenses found for {startDate} to {endDate}</p>
                 )}
             </div>
         </div>

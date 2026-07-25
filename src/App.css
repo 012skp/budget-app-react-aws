@@ -26,6 +26,8 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .app-header h1 {
@@ -33,9 +35,47 @@ body {
   font-weight: 600;
 }
 
+/* Calendar picker in header */
+.calendar-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.calendar-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(255,255,255,0.15);
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+}
+
+.calendar-picker label {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.8);
+  margin-right: 0.1rem;
+}
+
+.calendar-picker input[type="date"] {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.calendar-picker input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
 /* API Status - Simple and Clean */
 .api-status {
   font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .status-indicator {
@@ -139,23 +179,6 @@ body {
   align-items: center;
 }
 
-.month-selector {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.month-selector label {
-  font-weight: 500;
-  color: #666;
-}
-
-.month-selector input {
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
 
 .refresh-btn {
   padding: 0.5rem 1rem;
