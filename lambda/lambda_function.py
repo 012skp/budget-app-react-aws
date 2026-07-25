@@ -200,14 +200,6 @@ def lambda_handler(event, context):
         action = event.get('action', '').lower()
         data = event
 
-    # Validate action
-    if not action:
-        return {
-            'statusCode': 400,
-            'headers': cors_headers,
-            'body': json.dumps({'error': 'No action provided'})
-        }
-
     try:
         # Log access at entry point – single place for all actions
         infra.log_access(action)
