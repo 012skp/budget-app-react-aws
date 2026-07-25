@@ -35,90 +35,71 @@ function AddExpense({ users, categories, onExpenseAdded }) {
 
     return (
         <div className="page">
-            <h2>➕ Add Expense</h2>
+            <div className="form-card">
+                <h2>➕ Add Expense</h2>
 
-            <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label className="form-label">User</label>
+                        <select
+                            className="form-select"
+                            value={userId}
+                            onChange={(e) => setUserId(e.target.value)}
+                            required
+                        >
+                            <option value="">Select User</option>
+                            {users.map(user => (
+                                <option key={user.UserId} value={user.UserId}>
+                                    {user.Name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
 
-                <div>
-                    <label>User</label>
-                    <br />
+                    <div className="form-group">
+                        <label className="form-label">Category</label>
+                        <select
+                            className="form-select"
+                            value={categoryId}
+                            onChange={(e) => setCategoryId(e.target.value)}
+                            required
+                        >
+                            <option value="">Select Category</option>
+                            {categories.map(category => (
+                                <option key={category.CategoryId} value={category.CategoryId}>
+                                    {category.CategoryName}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
 
-                    <select
-                        value={userId}
-                        onChange={(e) => setUserId(e.target.value)}
-                        required
-                    >
-                        <option value="">Select User</option>
+                    <div className="form-group">
+                        <label className="form-label">Amount</label>
+                        <input
+                            className="form-input"
+                            type="number"
+                            step="0.01"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            required
+                        />
+                    </div>
 
-                        {users.map(user => (
-                            <option
-                                key={user.UserId}
-                                value={user.UserId}
-                            >
-                                {user.Name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                    <div className="form-group">
+                        <label className="form-label">Description</label>
+                        <textarea
+                            className="form-textarea"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            rows={3}
+                        />
+                    </div>
 
-                <br />
-
-                <div>
-                    <label>Category</label>
-                    <br />
-
-                    <select
-                        value={categoryId}
-                        onChange={(e) => setCategoryId(e.target.value)}
-                        required
-                    >
-                        <option value="">Select Category</option>
-
-                        {categories.map(category => (
-                            <option
-                                key={category.CategoryId}
-                                value={category.CategoryId}
-                            >
-                                {category.CategoryName}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <br />
-
-                <div>
-                    <label>Amount</label>
-                    <br />
-
-                    <input
-                        type="number"
-                        step="0.01"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        required
-                    />
-                </div>
-
-                <br />
-
-                <div>
-                    <label>Description</label>
-                    <br />
-
-                    <textarea
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                    />
-                </div>
-
-                <br />
-
-                <button type="submit">
-                    Save Expense
-                </button>
-
-            </form>
+                    <button className="btn-primary" type="submit">
+                        Save Expense
+                    </button>
+                </form>
+            </div>
         </div>
     );
 }

@@ -27,10 +27,7 @@ function UserManager({ users, loading, onRefresh }) {
             onRefresh();
         } catch (error) {
             console.error(error);
-            const msg =
-                error.response?.data?.error ||
-                error.response?.data?.message ||
-                'Failed to update user';
+            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to update user';
             alert(msg);
         }
     };
@@ -49,10 +46,7 @@ function UserManager({ users, loading, onRefresh }) {
             onRefresh();
         } catch (error) {
             console.error(error);
-            const msg =
-                error.response?.data?.error ||
-                error.response?.data?.message ||
-                'Failed to delete user';
+            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to delete user';
             alert(msg);
         }
     };
@@ -70,10 +64,7 @@ function UserManager({ users, loading, onRefresh }) {
             onRefresh();
         } catch (error) {
             console.error(error);
-            const msg =
-                error.response?.data?.error ||
-                error.response?.data?.message ||
-                'Failed to add user';
+            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to add user';
             alert(msg);
         }
     };
@@ -108,44 +99,56 @@ function UserManager({ users, loading, onRefresh }) {
 
             <hr />
 
-            <h3>Add User</h3>
-
-            <div>
-                <input
-                    placeholder="User Name"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                />
-                <input
-                    placeholder="Description"
-                    value={newDescription}
-                    onChange={(e) => setNewDescription(e.target.value)}
-                />
-                <button onClick={addUser}>Add User</button>
+            <div className="form-card">
+                <h3>Add User</h3>
+                <div className="form-group">
+                    <label className="form-label">Name</label>
+                    <input
+                        className="form-input"
+                        placeholder="User Name"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                    />
+                </div>
+                <div className="form-group">
+                    <label className="form-label">Description</label>
+                    <input
+                        className="form-input"
+                        placeholder="Description"
+                        value={newDescription}
+                        onChange={(e) => setNewDescription(e.target.value)}
+                    />
+                </div>
+                <button className="btn-primary" onClick={addUser}>Add User</button>
             </div>
 
-            {/* Modal for editing / deleting */}
             {selectedUser && (
                 <div className="modal-overlay" onClick={() => setSelectedUser(null)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()}>
                         <h3>Edit User #{selectedUser.UserId}</h3>
 
-                        <label>Name</label>
-                        <input
-                            value={editName}
-                            onChange={(e) => setEditName(e.target.value)}
-                        />
+                        <div className="form-group">
+                            <label className="form-label">Name</label>
+                            <input
+                                className="form-input"
+                                value={editName}
+                                onChange={(e) => setEditName(e.target.value)}
+                            />
+                        </div>
 
-                        <label>Description</label>
-                        <input
-                            value={editDescription}
-                            onChange={(e) => setEditDescription(e.target.value)}
-                        />
+                        <div className="form-group">
+                            <label className="form-label">Description</label>
+                            <input
+                                className="form-input"
+                                value={editDescription}
+                                onChange={(e) => setEditDescription(e.target.value)}
+                            />
+                        </div>
 
                         <div className="modal-actions">
-                            <button onClick={handleSave}>💾 Save</button>
-                            <button onClick={() => handleDelete(selectedUser.UserId)}>🗑 Delete</button>
-                            <button onClick={() => setSelectedUser(null)}>❌ Cancel</button>
+                            <button className="btn-primary" onClick={handleSave}>💾 Save</button>
+                            <button className="btn-danger" onClick={() => handleDelete(selectedUser.UserId)}>🗑 Delete</button>
+                            <button className="btn-secondary" onClick={() => setSelectedUser(null)}>❌ Cancel</button>
                         </div>
                     </div>
                 </div>

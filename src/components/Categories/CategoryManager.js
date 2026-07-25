@@ -95,46 +95,56 @@ function CategoryManager({ categories, loading, onRefresh }) {
 
             <hr />
 
-            <h3>Add Category</h3>
-
-            <div>
-                <input
-                    type="text"
-                    placeholder="Category Name"
-                    value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
-                />
-                <input
-                    type="text"
-                    placeholder="Description"
-                    value={newDescription}
-                    onChange={(e) => setNewDescription(e.target.value)}
-                />
-                <button onClick={addCategory}>Add Category</button>
+            <div className="form-card">
+                <h3>Add Category</h3>
+                <div className="form-group">
+                    <label className="form-label">Category Name</label>
+                    <input
+                        className="form-input"
+                        placeholder="Category Name"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                    />
+                </div>
+                <div className="form-group">
+                    <label className="form-label">Description</label>
+                    <input
+                        className="form-input"
+                        placeholder="Description"
+                        value={newDescription}
+                        onChange={(e) => setNewDescription(e.target.value)}
+                    />
+                </div>
+                <button className="btn-primary" onClick={addCategory}>Add Category</button>
             </div>
 
-            {/* Modal for editing / deleting */}
             {selectedCategory && (
                 <div className="modal-overlay" onClick={() => setSelectedCategory(null)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()}>
                         <h3>Edit Category #{selectedCategory.CategoryId}</h3>
 
-                        <label>Category Name</label>
-                        <input
-                            value={editCategoryName}
-                            onChange={(e) => setEditCategoryName(e.target.value)}
-                        />
+                        <div className="form-group">
+                            <label className="form-label">Category Name</label>
+                            <input
+                                className="form-input"
+                                value={editCategoryName}
+                                onChange={(e) => setEditCategoryName(e.target.value)}
+                            />
+                        </div>
 
-                        <label>Description</label>
-                        <input
-                            value={editDescription}
-                            onChange={(e) => setEditDescription(e.target.value)}
-                        />
+                        <div className="form-group">
+                            <label className="form-label">Description</label>
+                            <input
+                                className="form-input"
+                                value={editDescription}
+                                onChange={(e) => setEditDescription(e.target.value)}
+                            />
+                        </div>
 
                         <div className="modal-actions">
-                            <button onClick={handleSave}>💾 Save</button>
-                            <button onClick={() => handleDelete(selectedCategory.CategoryId)}>🗑 Delete</button>
-                            <button onClick={() => setSelectedCategory(null)}>❌ Cancel</button>
+                            <button className="btn-primary" onClick={handleSave}>💾 Save</button>
+                            <button className="btn-danger" onClick={() => handleDelete(selectedCategory.CategoryId)}>🗑 Delete</button>
+                            <button className="btn-secondary" onClick={() => setSelectedCategory(null)}>❌ Cancel</button>
                         </div>
                     </div>
                 </div>
