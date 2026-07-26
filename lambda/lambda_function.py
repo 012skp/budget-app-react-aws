@@ -4,6 +4,8 @@ import pymysql
 import time
 from datetime import datetime
 
+ssm = boto3.client('ssm')
+
 class InfrastructureManager:
     def __init__(self, instance_id, db_config):
         self.instance_id = instance_id
@@ -150,8 +152,6 @@ class InfrastructureManager:
     def log_access(self, action):
         """Append a line to /var/log/infra_access.log on the EC2 instance (best effort)."""
         try:
-            ssm = boto3.client('ssm')
-
             # ✅ Use double quotes so $(date) gets executed by shell
             cmd = f'echo "$(date) - {action}" >> /var/log/infra_access.log'
 
@@ -166,12 +166,20 @@ class InfrastructureManager:
 
 
 
+def get_parameter(param_name):
+    response = ssm.get_parameter(
+        Name=param_name,
+        WithDecryption=True   # Required for SecureString type
+    )
+    return response['Parameter']['Value']
+
 def lambda_handler(event, context):
     # Configuration
     INSTANCE_ID = 'i-04922d403f1790008'
+    db_password = get_parameter('/budgetApp/ec2/mariadb/password')
     DB_CONFIG = {
         'user': 'budget_user',
-        'password': 'BudgetPassword123',
+        'password': db_password,
         'database': 'budget',
         'port': 3306
     }
