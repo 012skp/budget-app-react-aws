@@ -183,6 +183,17 @@ function App() {
 
     return (
         <div className="app">
+            <style>{`
+                @media (max-width: 768px) {
+                    .app-body {
+                        display: flex;
+                        flex-direction: column;
+                    }
+                    .sidebar {
+                        order: -1;
+                    }
+                }
+            `}</style>
             <header className="app-header">
                 <h1>💰 Budget Tracker</h1>
                 <div className="calendar-bar">
