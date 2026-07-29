@@ -291,15 +291,15 @@ function Dashboard({
                                     })}
                                     </span>
 
-                                    <span className="expense-date">
-                                        {expense.Timestamp}
-                                    </span>
-
                                     <span className="expense-user">
                                         {getUserName(
                                             expense.UserId,
                                             users
                                         )}
+                                    </span>
+
+                                    <span className="expense-date">
+                                        {expense.Timestamp}
                                     </span>
                                 </div>
                             </div>

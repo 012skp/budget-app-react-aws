@@ -231,8 +231,8 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
                                 </div>
                                 <div className="expense-details">
                                     <span className="expense-amount">₹{parseFloat(expense.Amount).toFixed(2)}</span>
-                                    <span className="expense-date">{expense.Timestamp}</span>
                                     <span className="expense-user">{getUserName(expense.UserId, users)}</span>
+                                    <span className="expense-date">{expense.Timestamp}</span>
                                 </div>
                             </div>
                         ))}
