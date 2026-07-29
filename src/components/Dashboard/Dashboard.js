@@ -109,6 +109,12 @@ function Dashboard({
         if (onRefresh) await onRefresh();
     };
 
+    // dynamic width for the bar chart (based on number of user entries)
+    const barChartWidth = useMemo(
+        () => Math.max(300, userCategoryBreakdown.length * 120),
+        [userCategoryBreakdown]
+    );
+
     return (
         <div className="dashboard">
             <div className="dashboard-header">
@@ -229,8 +235,12 @@ function Dashboard({
                     <div className="chart-container">
                         <h3>Expense Per User Per Category</h3>
 
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={userCategoryBreakdown} barSize={10}>
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <BarChart
+                                width={barChartWidth}
+                                height={300}
+                                data={userCategoryBreakdown}
+                            >
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="name" />
                                 <YAxis />
@@ -246,7 +256,7 @@ function Dashboard({
                                     />
                                 ))}
                             </BarChart>
-                        </ResponsiveContainer>
+                        </div>
                     </div>
                 </div>
 
