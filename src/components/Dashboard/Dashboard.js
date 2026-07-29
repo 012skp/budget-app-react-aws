@@ -109,12 +109,6 @@ function Dashboard({
         if (onRefresh) await onRefresh();
     };
 
-    // dynamic width for the bar chart (based on number of user entries)
-    const barChartWidth = useMemo(
-        () => Math.max(300, userCategoryBreakdown.length * 120),
-        [userCategoryBreakdown]
-    );
-
     return (
         <div className="dashboard">
             <div className="dashboard-header">
@@ -235,27 +229,27 @@ function Dashboard({
                     <div className="chart-container">
                         <h3>Expense Per User Per Category</h3>
 
-                        <div style={{ display: 'flex', justifyContent: 'center' }}>
-                            <BarChart
-                                width={barChartWidth}
-                                height={300}
-                                data={userCategoryBreakdown}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="name" />
-                                <YAxis />
-                                <Tooltip />
-                                <Legend />
+                        <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                            <div style={{ maxWidth: '800px', width: '100%' }}>
+                                <ResponsiveContainer width="100%" height={300}>
+                                    <BarChart data={userCategoryBreakdown} barSize={40}>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="name" />
+                                        <YAxis />
+                                        <Tooltip />
+                                        <Legend />
 
-                                {categoryNames.map((name, idx) => (
-                                    <Bar
-                                        key={name}
-                                        dataKey={name}
-                                        stackId="a"
-                                        fill={COLORS[idx % COLORS.length]}
-                                    />
-                                ))}
-                            </BarChart>
+                                        {categoryNames.map((name, idx) => (
+                                            <Bar
+                                                key={name}
+                                                dataKey={name}
+                                                stackId="a"
+                                                fill={COLORS[idx % COLORS.length]}
+                                            />
+                                        ))}
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
                         </div>
                     </div>
                 </div>
