@@ -200,22 +200,27 @@ function Dashboard({
                         <h3>Expenses Per User</h3>
 
                         <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={userBreakdown}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="name" />
-                                <YAxis />
-                                <Tooltip />
-                                <Legend />
-
-                                <Bar dataKey="total" name="Amount">
+                            <PieChart>
+                                <Pie
+                                    data={userBreakdown}
+                                    dataKey="total"
+                                    nameKey="name"
+                                    cx="50%"
+                                    cy="50%"
+                                    outerRadius={100}
+                                    label
+                                >
                                     {userBreakdown.map((entry, index) => (
                                         <Cell
                                             key={index}
                                             fill={COLORS[index % COLORS.length]}
                                         />
                                     ))}
-                                </Bar>
-                            </BarChart>
+                                </Pie>
+
+                                <Tooltip />
+                                <Legend />
+                            </PieChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
