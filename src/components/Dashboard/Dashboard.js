@@ -230,7 +230,7 @@ function Dashboard({
                         <h3>Expense Per User Per Category</h3>
 
                         <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={userCategoryBreakdown}>
+                            <BarChart data={userCategoryBreakdown} barSize={10}>
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="name" />
                                 <YAxis />
