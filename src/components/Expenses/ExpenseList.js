@@ -217,42 +217,23 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
                 <p>🔄 Loading expenses from AWS...</p>
             ) : paginatedExpenses.length > 0 ? (
                 <>
-                    <div className="expense-table">
-                        <div className="table-header">
-                            <span>ID</span>
-                            <span
-                                className="sortable"
-                                onClick={() => handleSortChange('Timestamp')}
-                            >
-                                Date{sortArrow('Timestamp')}
-                            </span>
-                            <span
-                                className="sortable"
-                                onClick={() => handleSortChange('Description')}
-                            >
-                                Description{sortArrow('Description')}
-                            </span>
-                            <span>Category</span>
-                            <span>User</span>
-                            <span
-                                className="sortable"
-                                onClick={() => handleSortChange('Amount')}
-                            >
-                                Amount{sortArrow('Amount')}
-                            </span>
-                        </div>
+                    <div className="expense-list">
                         {paginatedExpenses.map(expense => (
                             <div
                                 key={expense.ExpenseId}
-                                className="table-row"
+                                className="expense-item"
                                 onClick={() => handleRowClick(expense)}
                             >
-                                <span>{expense.ExpenseId}</span>
-                                <span>{expense.Timestamp}</span>
-                                <span>{expense.Description}</span>
-                                <span>{getCategoryName(expense.CategoryId, categories)}</span>
-                                <span>{getUserName(expense.UserId, users)}</span>
-                                <span>₹{parseFloat(expense.Amount).toFixed(2)}</span>
+                                <div className="expense-info">
+                                    <span className="expense-id">#{expense.ExpenseId}</span>
+                                    <span className="expense-description">{expense.Description}</span>
+                                    <span className="expense-category">{getCategoryName(expense.CategoryId, categories)}</span>
+                                </div>
+                                <div className="expense-details">
+                                    <span className="expense-amount">₹{parseFloat(expense.Amount).toFixed(2)}</span>
+                                    <span className="expense-date">{expense.Timestamp}</span>
+                                    <span className="expense-user">{getUserName(expense.UserId, users)}</span>
+                                </div>
                             </div>
                         ))}
                     </div>
