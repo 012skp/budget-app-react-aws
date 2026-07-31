@@ -4,6 +4,7 @@ import pymysql
 import time
 from datetime import datetime
 
+
 ssm = boto3.client('ssm')
 
 class InfrastructureManager:
