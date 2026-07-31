@@ -2,7 +2,7 @@ import {getCategoryName, getUserName} from "../../utils/dataHelpers";
 import { expenseAPI } from '../../services/api';
 import React, { useState, useMemo } from 'react';
 
-function ExpenseList({filteredExpenses, users, categories, dateRange, loading, onRefresh}) {
+function ExpenseList({filteredExpenses, users, categories, dateRange, loading, onRefresh, initialFilter}) {
     // Modal state
     const [selectedExpense, setSelectedExpense] = useState(null);
     const [editForm, setEditForm] = useState({
@@ -13,9 +13,12 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
     });
 
     // Filter / sort / pagination state
+    const initialCategoryId = initialFilter?.type === 'category' ? String(initialFilter.value) : '';
+    const initialUserId = initialFilter?.type === 'user' ? String(initialFilter.value) : '';
+
     const [searchText, setSearchText] = useState('');
-    const [categoryFilter, setCategoryFilter] = useState('');
-    const [userFilter, setUserFilter] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState(initialCategoryId);
+    const [userFilter, setUserFilter] = useState(initialUserId);
     const [sortField, setSortField] = useState('Timestamp');
     const [sortDirection, setSortDirection] = useState('desc');
     const [currentPage, setCurrentPage] = useState(1);

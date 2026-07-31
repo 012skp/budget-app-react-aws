@@ -41,18 +41,6 @@ function App() {
         });
     }, [expenses, dateRange]);
 
-    // Filter expenses further if the user clicked a category/user bar
-    const filteredExpensesForPage = useMemo(() => {
-        if (!expenseFilter) return filteredExpenses;
-        if (expenseFilter.type === 'category') {
-            return filteredExpenses.filter(exp => exp.CategoryId === expenseFilter.value);
-        }
-        if (expenseFilter.type === 'user') {
-            return filteredExpenses.filter(exp => exp.UserId === expenseFilter.value);
-        }
-        return filteredExpenses;
-    }, [filteredExpenses, expenseFilter]);
-
     // Fetch only users, categories, and expenses for the selected date range
     const loadAllData = useCallback(async () => {
         setLoading(true);
@@ -165,12 +153,14 @@ function App() {
                 />;
             case 'expenses':
                 return <ExpenseList
-                    filteredExpenses={filteredExpensesForPage}
+                    key={expenseFilter ? `${expenseFilter.type}-${expenseFilter.value}` : 'all'}
+                    filteredExpenses={filteredExpenses}
                     users={users}
                     categories={categories}
                     dateRange={dateRange}
                     loading={loading}
                     onRefresh={loadAllData}
+                    initialFilter={expenseFilter}
                 />;
             case 'add-expense':
                 return <AddExpense users={users} categories={categories} onExpenseAdded={loadAllData} />;
