@@ -49,13 +49,13 @@ function CalendarPicker({ dateRange, onDateChange }) {
             </button>
             <div className="calendar-picker">
                 <div className="calendar-range">
-                    <label>From:</label>
+                    <label style={{ marginLeft: '8px' }}>From:</label>
                     <input
                         type="date"
                         value={dateRange.startDate}
                         onChange={handleStartChange}
                     />
-                    <label>To:</label>
+                    <label style={{ marginLeft: '8px' }}>To:</label>
                     <input
                         type="date"
                         value={dateRange.endDate}
