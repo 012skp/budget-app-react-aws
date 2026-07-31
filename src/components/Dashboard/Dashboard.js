@@ -9,6 +9,8 @@ import {
     YAxis,
     CartesianGrid,
     LabelList,
+    LineChart,
+    Line,
     defs,
     linearGradient,
     stop
@@ -218,6 +220,53 @@ function Dashboard({
             .sort((a, b) => (b.Timestamp || '').localeCompare(a.Timestamp || ''))
             .slice(0, 10);
     }, [filteredExpenses]);
+
+    // Daily cumulative + category volume data
+    const dailyExpenseData = useMemo(() => {
+        if (!startDate || !endDate) return [];
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const days = [];
+        const current = new Date(start);
+        const dayToIndex = {};
+
+        while (current <= end) {
+            const dateStr = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')}`;
+            const dayObj = {
+                day: current.getDate(),
+                date: dateStr,
+                cumulative: 0
+            };
+            categories.forEach(cat => {
+                dayObj[cat.CategoryName] = 0;
+            });
+            dayToIndex[dateStr] = dayObj;
+            days.push(dayObj);
+            current.setDate(current.getDate() + 1);
+        }
+
+        const dayTotalMap = {};
+        filteredExpenses.forEach(exp => {
+            if (!exp.Timestamp) return;
+            const dateStr = exp.Timestamp.slice(0, 10);
+            const amount = parseFloat(exp.Amount) || 0;
+            dayTotalMap[dateStr] = (dayTotalMap[dateStr] || 0) + amount;
+            const dayObj = dayToIndex[dateStr];
+            if (dayObj) {
+                const catName = getCategoryName(exp.CategoryId, categories);
+                dayObj[catName] = (dayObj[catName] || 0) + amount;
+            }
+        });
+
+        let cumulative = 0;
+        days.forEach(dayObj => {
+            cumulative += (dayTotalMap[dayObj.date] || 0);
+            dayObj.cumulative = cumulative;
+        });
+
+        return days;
+    }, [filteredExpenses, startDate, endDate, categories]);
 
     const handleRefresh = async () => {
         if (onRefresh) await onRefresh();
@@ -466,6 +515,74 @@ function Dashboard({
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
+                </div>
+            </div>
+
+            {/* Cumulative expenses & daily category volume */}
+            <div className="chart-card" style={{ width: '100%', marginTop: '20px' }}>
+                <div className="chart-container">
+                    <h3>Cumulative Expenses by Day</h3>
+
+                    <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={dailyExpenseData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" vertical={false} />
+                            <XAxis
+                                dataKey="day"
+                                tick={{ fill: '#667', fontSize: 12 }}
+                                axisLine={false}
+                                tickLine={false}
+                                label={{ value: 'Day', position: 'insideBottom', offset: -5 }}
+                            />
+                            <YAxis
+                                tick={{ fill: '#667', fontSize: 12 }}
+                                axisLine={false}
+                                tickLine={false}
+                            />
+                            <Tooltip content={<CustomTooltip />} />
+                            <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+                            <Line
+                                type="monotone"
+                                dataKey="cumulative"
+                                name="Cumulative Expense"
+                                stroke="#4F73DF"
+                                strokeWidth={2}
+                                dot={{ r: 3 }}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+
+                <div className="chart-container" style={{ marginTop: '20px' }}>
+                    <h3>Daily Expense Volume by Category</h3>
+
+                    <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={dailyExpenseData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" vertical={false} />
+                            <XAxis
+                                dataKey="day"
+                                tick={{ fill: '#667', fontSize: 12 }}
+                                axisLine={false}
+                                tickLine={false}
+                                label={{ value: 'Day', position: 'insideBottom', offset: -5 }}
+                            />
+                            <YAxis
+                                tick={{ fill: '#667', fontSize: 12 }}
+                                axisLine={false}
+                                tickLine={false}
+                            />
+                            <Tooltip content={<CustomTooltip />} />
+                            <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+                            {categoryNames.map((name, idx) => (
+                                <Bar
+                                    key={name}
+                                    name={name}
+                                    dataKey={name}
+                                    stackId="day-volume"
+                                    fill={getCategoryColor(name, idx)}
+                                />
+                            ))}
+                        </BarChart>
+                    </ResponsiveContainer>
                 </div>
             </div>
 
