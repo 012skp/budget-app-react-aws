@@ -235,7 +235,7 @@ function Dashboard({
                         <h3>Expenses Per Category</h3>
 
                         <ResponsiveContainer width="100%" height={250}>
-                            <BarChart data={categoryBreakdown} barCategoryGap="15%">
+                            <BarChart data={categoryBreakdown} barCategoryGap="15%" margin={{ top: 35, right: 20, left: 20, bottom: 5 }}>
                                 <defs>
                                     <linearGradient id="gradCategory" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#4F73DF" stopOpacity={0.9} />
@@ -295,7 +295,7 @@ function Dashboard({
                         <h3>Expenses Per User</h3>
 
                         <ResponsiveContainer width="100%" height={250}>
-                            <BarChart data={userBreakdown} barCategoryGap="15%">
+                            <BarChart data={userBreakdown} barCategoryGap="15%" margin={{ top: 35, right: 20, left: 20, bottom: 5 }}>
                                 <defs>
                                     <linearGradient id="gradUser" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#12B886" stopOpacity={0.9} />
@@ -359,6 +359,7 @@ function Dashboard({
                                 data={userCategoryBreakdown}
                                 barCategoryGap="15%"
                                 barSize={40}
+                                margin={{ top: 20, right: 20, left: 20, bottom: 5 }}
                             >
                                 <defs>
                                     {categoryNames.map((name, idx) => (
