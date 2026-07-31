@@ -22,10 +22,12 @@ function App() {
     const [loading, setLoading] = useState(true);
     const [apiStatus, setApiStatus] = useState('connecting');
     const [stoppingInfra, setStoppingInfra] = useState(false);
+    const [expenseFilter, setExpenseFilter] = useState(null);
 
     // Navigation callback – used by Dashboard to switch pages
-    const handleNavigate = useCallback((page) => {
+    const handleNavigate = useCallback((page, filter) => {
         setCurrentPage(page);
+        setExpenseFilter(filter || null);
     }, []);
 
     // Compute filtered expenses based on date range.
@@ -38,6 +40,18 @@ function App() {
             return expenseDate >= dateRange.startDate && expenseDate <= dateRange.endDate;
         });
     }, [expenses, dateRange]);
+
+    // Filter expenses further if the user clicked a category/user bar
+    const filteredExpensesForPage = useMemo(() => {
+        if (!expenseFilter) return filteredExpenses;
+        if (expenseFilter.type === 'category') {
+            return filteredExpenses.filter(exp => exp.CategoryId === expenseFilter.value);
+        }
+        if (expenseFilter.type === 'user') {
+            return filteredExpenses.filter(exp => exp.UserId === expenseFilter.value);
+        }
+        return filteredExpenses;
+    }, [filteredExpenses, expenseFilter]);
 
     // Fetch only users, categories, and expenses for the selected date range
     const loadAllData = useCallback(async () => {
@@ -151,7 +165,7 @@ function App() {
                 />;
             case 'expenses':
                 return <ExpenseList
-                    filteredExpenses={filteredExpenses}
+                    filteredExpenses={filteredExpensesForPage}
                     users={users}
                     categories={categories}
                     dateRange={dateRange}
@@ -229,19 +243,19 @@ function App() {
                 <nav className="sidebar">
                     <ul>
                         <li className={currentPage === 'dashboard' ? 'active' : ''}>
-                            <button onClick={() => setCurrentPage('dashboard')}>📊 Dashboard</button>
+                            <button onClick={() => handleNavigate('dashboard')}>📊 Dashboard</button>
                         </li>
                         <li className={currentPage === 'expenses' ? 'active' : ''}>
-                            <button onClick={() => setCurrentPage('expenses')}>📋 Expenses ({filteredExpenses.length})</button>
+                            <button onClick={() => handleNavigate('expenses')}>📋 Expenses ({filteredExpenses.length})</button>
                         </li>
                         <li className={currentPage === 'add-expense' ? 'active' : ''}>
-                            <button onClick={() => setCurrentPage('add-expense')}>➕ Add Expense</button>
+                            <button onClick={() => handleNavigate('add-expense')}>➕ Add Expense</button>
                         </li>
                         <li className={currentPage === 'users' ? 'active' : ''}>
-                            <button onClick={() => setCurrentPage('users')}>👥 Users ({users.length})</button>
+                            <button onClick={() => handleNavigate('users')}>👥 Users ({users.length})</button>
                         </li>
                         <li className={currentPage === 'categories' ? 'active' : ''}>
-                            <button onClick={() => setCurrentPage('categories')}>🏷️ Categories ({categories.length})</button>
+                            <button onClick={() => handleNavigate('categories')}>🏷️ Categories ({categories.length})</button>
                         </li>
                     </ul>
                 </nav>

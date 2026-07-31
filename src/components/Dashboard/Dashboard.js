@@ -79,11 +79,12 @@ function Dashboard({
             const catId = exp.CategoryId;
             const catName = getCategoryName(catId, categories);
             const amount = parseFloat(exp.Amount) || 0;
-            map[catName] = (map[catName] || 0) + amount;
+            if (!map[catName]) {
+                map[catName] = { name: catName, value: 0, categoryId: catId };
+            }
+            map[catName].value += amount;
         });
-        return Object.entries(map)
-            .map(([name, value]) => ({ name, value }))
-            .sort((a, b) => b.value - a.value);
+        return Object.values(map).sort((a, b) => b.value - a.value);
     }, [filteredExpenses, categories]);
 
     // Compute user breakdown client-side, sorted descending so highest is left
@@ -93,11 +94,12 @@ function Dashboard({
             const userId = exp.UserId;
             const userName = getUserName(userId, users);
             const amount = parseFloat(exp.Amount) || 0;
-            map[userName] = (map[userName] || 0) + amount;
+            if (!map[userName]) {
+                map[userName] = { name: userName, total: 0, userId };
+            }
+            map[userName].total += amount;
         });
-        return Object.entries(map)
-            .map(([name, total]) => ({ name, total }))
-            .sort((a, b) => b.total - a.total);
+        return Object.values(map).sort((a, b) => b.total - a.total);
     }, [filteredExpenses, users]);
 
     // Compute user‑category breakdown for stacked bar chart, sorted by user total descending
@@ -155,6 +157,18 @@ function Dashboard({
 
     const handleRefresh = async () => {
         if (onRefresh) await onRefresh();
+    };
+
+    const handleCategoryClick = (data) => {
+        if (data && data.categoryId != null) {
+            onNavigate('expenses', { type: 'category', value: data.categoryId });
+        }
+    };
+
+    const handleUserClick = (data) => {
+        if (data && data.userId != null) {
+            onNavigate('expenses', { type: 'user', value: data.userId });
+        }
     };
 
     return (
@@ -257,6 +271,7 @@ function Dashboard({
                                     fill="url(#gradCategory)"
                                     radius={[8, 8, 0, 0]}
                                     maxBarSize={40}
+                                    onClick={handleCategoryClick}
                                 />
                             </BarChart>
                         </ResponsiveContainer>
@@ -306,6 +321,7 @@ function Dashboard({
                                     fill="url(#gradUser)"
                                     radius={[8, 8, 0, 0]}
                                     maxBarSize={40}
+                                    onClick={handleUserClick}
                                 />
                             </BarChart>
                         </ResponsiveContainer>
