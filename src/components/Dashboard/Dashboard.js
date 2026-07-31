@@ -277,6 +277,7 @@ function Dashboard({
                                     <LabelList
                                         dataKey="value"
                                         position="top"
+                                        style={{ fontWeight: 'bold', fill: '#333', fontSize: 13 }}
                                         formatter={(value) =>
                                             totalExpenses > 0
                                                 ? `${((value / totalExpenses) * 100).toFixed(1)}%`
@@ -337,6 +338,7 @@ function Dashboard({
                                     <LabelList
                                         dataKey="total"
                                         position="top"
+                                        style={{ fontWeight: 'bold', fill: '#333', fontSize: 13 }}
                                         formatter={(value) =>
                                             totalExpenses > 0
                                                 ? `${((value / totalExpenses) * 100).toFixed(1)}%`
