@@ -36,7 +36,7 @@ function CalendarPicker({ dateRange, onDateChange }) {
                 aria-label="Previous month"
                 type="button"
             >
-                ⬅
+                ⬅️
             </button>
             <div className="calendar-range">
                 <label>From:</label>
@@ -58,7 +58,7 @@ function CalendarPicker({ dateRange, onDateChange }) {
                 aria-label="Next month"
                 type="button"
             >
-                ➡
+                ➡️
             </button>
         </div>
     );
