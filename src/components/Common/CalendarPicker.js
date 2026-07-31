@@ -2,6 +2,14 @@ import React from 'react';
 import { addMonths, subMonths, startOfMonth, endOfMonth, format } from 'date-fns';
 
 function CalendarPicker({ dateRange, onDateChange }) {
+    const handleStartChange = (e) => {
+        onDateChange({ ...dateRange, startDate: e.target.value });
+    };
+
+    const handleEndChange = (e) => {
+        onDateChange({ ...dateRange, endDate: e.target.value });
+    };
+
     const shiftMonth = (direction) => {
         if (!dateRange || !dateRange.startDate) return;
 
@@ -29,8 +37,24 @@ function CalendarPicker({ dateRange, onDateChange }) {
         lineHeight: 1,
     };
 
+    const containerStyle = {
+        display: 'inline-flex',
+        alignItems: 'center',
+        background: 'transparent',
+        padding: 0,
+        margin: 0,
+    };
+
+    const inputStyle = {
+        margin: '0 4px',
+        background: 'transparent',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        padding: '2px 4px',
+    };
+
     return (
-        <div style={{ display: 'inline-flex', alignItems: 'center', padding: 0, margin: 0, background: 'transparent' }}>
+        <div style={containerStyle}>
             <button
                 style={arrowStyle}
                 onClick={() => shiftMonth(-1)}
@@ -39,6 +63,19 @@ function CalendarPicker({ dateRange, onDateChange }) {
             >
                 ⬅
             </button>
+            <input
+                type="date"
+                style={inputStyle}
+                value={dateRange.startDate}
+                onChange={handleStartChange}
+            />
+            <span style={{ margin: '0 2px', color: 'inherit' }}>to</span>
+            <input
+                type="date"
+                style={inputStyle}
+                value={dateRange.endDate}
+                onChange={handleEndChange}
+            />
             <button
                 style={arrowStyle}
                 onClick={() => shiftMonth(1)}
