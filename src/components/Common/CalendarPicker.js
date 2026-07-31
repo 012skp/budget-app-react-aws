@@ -31,58 +31,43 @@ function CalendarPicker({ dateRange, onDateChange }) {
         border: 'none',
         padding: 0,
         margin: '0 4px',
-        fontSize: '1.5rem',
+        fontSize: '1.2rem',
         cursor: 'pointer',
         color: 'inherit',
         lineHeight: 1,
     };
 
-    const containerStyle = {
-        display: 'inline-flex',
-        alignItems: 'center',
-        background: 'transparent',
-        padding: 0,
-        margin: 0,
-    };
-
-    const inputStyle = {
-        margin: '0 4px',
-        background: 'transparent',
-        border: '1px solid #ccc',
-        borderRadius: '4px',
-        padding: '2px 4px',
-    };
-
     return (
-        <div style={containerStyle}>
+        <div style={{ display: 'inline-flex', alignItems: 'center' }}>
             <button
                 style={arrowStyle}
                 onClick={() => shiftMonth(-1)}
                 aria-label="Previous month"
                 type="button"
             >
-                ⬅
+                ◀
             </button>
-            <input
-                type="date"
-                style={inputStyle}
-                value={dateRange.startDate}
-                onChange={handleStartChange}
-            />
-            <span style={{ margin: '0 2px', color: 'inherit' }}>to</span>
-            <input
-                type="date"
-                style={inputStyle}
-                value={dateRange.endDate}
-                onChange={handleEndChange}
-            />
+            <div style={{ display: 'inline-flex', alignItems: 'center' }}>
+                <label style={{ marginRight: '4px' }}>From:</label>
+                <input
+                    type="date"
+                    value={dateRange.startDate}
+                    onChange={handleStartChange}
+                />
+                <label style={{ margin: '0 4px' }}>To:</label>
+                <input
+                    type="date"
+                    value={dateRange.endDate}
+                    onChange={handleEndChange}
+                />
+            </div>
             <button
                 style={arrowStyle}
                 onClick={() => shiftMonth(1)}
                 aria-label="Next month"
                 type="button"
             >
-                ➡
+                ▶
             </button>
         </div>
     );
