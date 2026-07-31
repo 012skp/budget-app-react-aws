@@ -62,7 +62,7 @@ function Dashboard({
         return Object.entries(map).map(([name, total]) => ({ name, total }));
     }, [filteredExpenses, users]);
 
-    // Compute user‑category breakdown for stacked bar chart
+    // Compute user‑category breakdown for grouped bar chart
     const userCategoryBreakdown = useMemo(() => {
         const catNames = categories.reduce((acc, cat) => {
             acc[cat.CategoryId] = cat.CategoryName;
@@ -170,27 +170,21 @@ function Dashboard({
                         <h3>Expenses Per Category</h3>
 
                         <ResponsiveContainer width="100%" height={300}>
-                            <PieChart>
-                                <Pie
-                                    data={categoryBreakdown}
-                                    dataKey="value"
-                                    nameKey="name"
-                                    cx="50%"
-                                    cy="50%"
-                                    outerRadius={100}
-                                    label
-                                >
+                            <BarChart data={categoryBreakdown}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="name" />
+                                <YAxis />
+                                <Tooltip />
+                                <Legend />
+                                <Bar name="Amount" dataKey="value">
                                     {categoryBreakdown.map((entry, index) => (
                                         <Cell
                                             key={index}
                                             fill={COLORS[index % COLORS.length]}
                                         />
                                     ))}
-                                </Pie>
-
-                                <Tooltip />
-                                <Legend />
-                            </PieChart>
+                                </Bar>
+                            </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
@@ -200,27 +194,21 @@ function Dashboard({
                         <h3>Expenses Per User</h3>
 
                         <ResponsiveContainer width="100%" height={300}>
-                            <PieChart>
-                                <Pie
-                                    data={userBreakdown}
-                                    dataKey="total"
-                                    nameKey="name"
-                                    cx="50%"
-                                    cy="50%"
-                                    outerRadius={100}
-                                    label
-                                >
+                            <BarChart data={userBreakdown}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="name" />
+                                <YAxis />
+                                <Tooltip />
+                                <Legend />
+                                <Bar name="Amount" dataKey="total">
                                     {userBreakdown.map((entry, index) => (
                                         <Cell
                                             key={index}
                                             fill={COLORS[index % COLORS.length]}
                                         />
                                     ))}
-                                </Pie>
-
-                                <Tooltip />
-                                <Legend />
-                            </PieChart>
+                                </Bar>
+                            </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
@@ -232,7 +220,12 @@ function Dashboard({
                         <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                             <div style={{ maxWidth: '800px', width: '100%' }}>
                                 <ResponsiveContainer width="100%" height={300}>
-                                    <BarChart data={userCategoryBreakdown} barSize={40}>
+                                    <BarChart
+                                        data={userCategoryBreakdown}
+                                        barCategoryGap={0}
+                                        barGap={20}
+                                        barSize={25}
+                                    >
                                         <CartesianGrid strokeDasharray="3 3" />
                                         <XAxis dataKey="name" />
                                         <YAxis />
@@ -243,7 +236,6 @@ function Dashboard({
                                             <Bar
                                                 key={name}
                                                 dataKey={name}
-                                                stackId="a"
                                                 fill={COLORS[idx % COLORS.length]}
                                             />
                                         ))}
