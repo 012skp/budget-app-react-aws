@@ -284,10 +284,10 @@ function Dashboard({
                 </button>
             </div>
 
-            <div className="dashboard-charts">
+            <div className="dashboard-charts" style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'center' }}>
                 {/* Expenses Per Category */}
-                <div className="chart-card">
-                    <div className="chart-container" style={{ maxWidth: '600px', margin: '0 auto' }}>
+                <div className="chart-card" style={{ flex: '1 1 300px', minWidth: '0' }}>
+                    <div className="chart-container" style={{ width: '100%' }}>
                         <h3>Expenses Per Category</h3>
 
                         <ResponsiveContainer width="100%" height={250}>
@@ -347,8 +347,8 @@ function Dashboard({
                 </div>
 
                 {/* Expenses Per User */}
-                <div className="chart-card">
-                    <div className="chart-container" style={{ maxWidth: '600px', margin: '0 auto' }}>
+                <div className="chart-card" style={{ flex: '1 1 300px', minWidth: '0' }}>
+                    <div className="chart-container" style={{ width: '100%' }}>
                         <h3>Expenses Per User</h3>
 
                         <ResponsiveContainer width="100%" height={250}>
@@ -408,8 +408,8 @@ function Dashboard({
                 </div>
 
                 {/* Expense Per User Per Category – stacked bar */}
-                <div className="chart-card">
-                    <div className="chart-container" style={{ maxWidth: '600px', margin: '0 auto' }}>
+                <div className="chart-card" style={{ flex: '1 1 300px', minWidth: '0' }}>
+                    <div className="chart-container" style={{ width: '100%' }}>
                         <h3>Expense Per User Per Category</h3>
 
                         <ResponsiveContainer width="100%" height={250}>
