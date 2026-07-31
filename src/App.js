@@ -41,40 +41,64 @@ function App() {
         });
     }, [expenses, dateRange]);
 
-    // Fetch only users, categories, and expenses for the selected date range
-    const loadAllData = useCallback(async () => {
+    // Fetch users & categories – only once on mount
+    useEffect(() => {
+        const fetchBaseData = async () => {
+            try {
+                const [usersRes, categoriesRes] = await Promise.all([
+                    userAPI.getUsers(),
+                    categoryAPI.getCategories()
+                ]);
+
+                setUsers(usersRes.data.users || []);
+                setCategories(categoriesRes.data.categories || []);
+
+                console.log('👥 Users loaded');
+                console.log('🏷️ Categories loaded');
+            } catch (error) {
+                console.error('❌ Base data fetch error:', error);
+
+                // Fallback demo data for users/categories
+                setUsers([
+                    { user_id: '1', name: 'John Doe', description: 'Primary user' },
+                    { user_id: '2', name: 'Jane Smith', description: 'Secondary user' }
+                ]);
+
+                setCategories([
+                    { category_id: '1', category_name: 'Food', description: 'Food and groceries' },
+                    { category_id: '2', category_name: 'Transport', description: 'Transportation costs' }
+                ]);
+            }
+        };
+
+        fetchBaseData();
+    }, []);
+
+    // Fetch expenses for the currently selected date range
+    const fetchExpenses = useCallback(async () => {
         setLoading(true);
         setApiStatus('connecting');
 
         try {
-            console.log('🔄 Loading data...');
+            console.log(`🔄 Loading expenses for ${dateRange.startDate} to ${dateRange.endDate}...`);
 
-            // Fetch users, categories, and expenses in parallel
-            const [usersRes, categoriesRes, expensesRes] = await Promise.all([
-                userAPI.getUsers(),
-                categoryAPI.getCategories(),
-                expenseAPI.getExpensesByDateRange(dateRange.startDate, dateRange.endDate)
-            ]);
+            const expensesRes = await expenseAPI.getExpensesByDateRange(
+                dateRange.startDate,
+                dateRange.endDate
+            );
 
-            console.log('👥 Users Response:', usersRes.data);
-            console.log('🏷️ Categories Response:', categoriesRes.data);
-            console.log('📊 Expenses Response:', expensesRes.data);
-
-            setUsers(usersRes.data.users || []);
-            setCategories(categoriesRes.data.categories || []);
             setExpenses(expensesRes.data.expenses || []);
 
             setApiStatus('connected');
-            console.log('✅ All data loaded successfully!');
-
+            console.log('✅ Expenses loaded successfully!');
         } catch (error) {
             console.error('❌ API Error:', error);
             setApiStatus('error');
 
-            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to load data. Using sample data instead.';
+            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to load expenses. Using sample data instead.';
             alert(msg);
 
-            // Set sample data for testing UI
+            // Fallback sample expenses
             setExpenses([
                 {
                     expense_id: '1',
@@ -93,25 +117,15 @@ function App() {
                     user_name: 'Jane Smith'
                 }
             ]);
-
-            setUsers([
-                { user_id: '1', name: 'John Doe', description: 'Primary user' },
-                { user_id: '2', name: 'Jane Smith', description: 'Secondary user' }
-            ]);
-
-            setCategories([
-                { category_id: '1', category_name: 'Food', description: 'Food and groceries' },
-                { category_id: '2', category_name: 'Transport', description: 'Transportation costs' }
-            ]);
         } finally {
             setLoading(false);
         }
     }, [dateRange]);
 
-    // Load all data on mount and whenever dateRange changes
+    // Load expenses whenever date range changes (including on mount)
     useEffect(() => {
-        loadAllData();
-    }, [loadAllData]);
+        fetchExpenses();
+    }, [fetchExpenses]);
 
     const handleStopInfra = async () => {
         const confirmed = window.confirm(
@@ -148,7 +162,7 @@ function App() {
                     categories={categories}
                     loading={loading}
                     apiStatus={apiStatus}
-                    onRefresh={loadAllData}
+                    onRefresh={fetchExpenses}
                     onNavigate={handleNavigate}
                 />;
             case 'expenses':
@@ -159,15 +173,15 @@ function App() {
                     categories={categories}
                     dateRange={dateRange}
                     loading={loading}
-                    onRefresh={loadAllData}
+                    onRefresh={fetchExpenses}
                     initialFilter={expenseFilter}
                 />;
             case 'add-expense':
-                return <AddExpense users={users} categories={categories} onExpenseAdded={loadAllData} />;
+                return <AddExpense users={users} categories={categories} onExpenseAdded={fetchExpenses} />;
             case 'users':
-                return <UserManager users={users} loading={loading} onRefresh={loadAllData} />;
+                return <UserManager users={users} loading={loading} onRefresh={fetchExpenses} />;
             case 'categories':
-                return <CategoryManager categories={categories} loading={loading} onRefresh={loadAllData} />;
+                return <CategoryManager categories={categories} loading={loading} onRefresh={fetchExpenses} />;
             default:
                 return <Dashboard
                     dateRange={dateRange}
@@ -176,7 +190,7 @@ function App() {
                     categories={categories}
                     loading={loading}
                     apiStatus={apiStatus}
-                    onRefresh={loadAllData}
+                    onRefresh={fetchExpenses}
                     onNavigate={handleNavigate}
                 />;
         }

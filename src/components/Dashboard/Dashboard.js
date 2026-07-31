@@ -212,6 +212,13 @@ function Dashboard({
         return Object.keys(totals).sort((a, b) => totals[a] - totals[b]);
     }, [filteredExpenses, categories]);
 
+    // Recent expenses: latest 10 within selected date range
+    const recentExpensesData = useMemo(() => {
+        return [...filteredExpenses]
+            .sort((a, b) => (b.Timestamp || '').localeCompare(a.Timestamp || ''))
+            .slice(0, 10);
+    }, [filteredExpenses]);
+
     const handleRefresh = async () => {
         if (onRefresh) await onRefresh();
     };
@@ -467,9 +474,9 @@ function Dashboard({
 
                 {loading ? (
                     <p>🔄 Loading expenses from AWS...</p>
-                ) : filteredExpenses.length > 0 ? (
+                ) : recentExpensesData.length > 0 ? (
                     <div className="expense-list">
-                        {filteredExpenses.slice(0, 5).map((expense) => (
+                        {recentExpensesData.map((expense) => (
                             <div key={expense.ExpenseId} className="expense-item">
                                 <div className="expense-info">
                                     <span className="expense-id">#{expense.ExpenseId}</span>
