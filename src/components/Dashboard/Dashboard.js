@@ -315,13 +315,6 @@ function Dashboard({
                                     tickLine={false}
                                 />
                                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)', radius: 8 }} />
-                                <Legend
-                                    iconType="circle"
-                                    wrapperStyle={{
-                                        fontSize: 12,
-                                        paddingTop: 10
-                                    }}
-                                />
                                 <Bar
                                     name="Amount"
                                     dataKey="value"
@@ -376,13 +369,6 @@ function Dashboard({
                                     tickLine={false}
                                 />
                                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)', radius: 8 }} />
-                                <Legend
-                                    iconType="circle"
-                                    wrapperStyle={{
-                                        fontSize: 12,
-                                        paddingTop: 10
-                                    }}
-                                />
                                 <Bar
                                     name="Amount"
                                     dataKey="total"
