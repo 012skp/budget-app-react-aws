@@ -18,6 +18,7 @@ import { getUserName, getCategoryName } from '../../utils/dataHelpers';
 
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
+        const total = payload.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
         return (
             <div
                 style={{
@@ -30,21 +31,30 @@ const CustomTooltip = ({ active, payload, label }) => {
                 }}
             >
                 <p style={{ margin: 0, fontWeight: 600, color: '#333' }}>{label}</p>
-                {payload.map((item, idx) => (
-                    <p
-                        key={idx}
-                        style={{
-                            margin: '6px 0 0',
-                            color: item.color || item.fill || '#333',
-                            fontWeight: 500
-                        }}
-                    >
-                        {item.name}: ₹{Number(item.value).toLocaleString('en-IN', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}
-                    </p>
-                ))}
+                {payload.map((item, idx) => {
+                    const pct = payload.length > 1 && total > 0
+                        ? ((Number(item.value) / total) * 100)
+                        : null;
+                    const displayName = pct !== null
+                        ? `${item.name} (${pct.toFixed(1)}%)`
+                        : item.name;
+
+                    return (
+                        <p
+                            key={idx}
+                            style={{
+                                margin: '6px 0 0',
+                                color: item.color || item.fill || '#333',
+                                fontWeight: 500
+                            }}
+                        >
+                            {displayName}: ₹{Number(item.value).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}
+                        </p>
+                    );
+                })}
             </div>
         );
     }
