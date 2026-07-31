@@ -216,10 +216,10 @@ function Dashboard({
             <div className="dashboard-charts">
                 {/* Expenses Per Category */}
                 <div className="chart-card">
-                    <div className="chart-container">
+                    <div className="chart-container" style={{ maxWidth: '600px', margin: '0 auto' }}>
                         <h3>Expenses Per Category</h3>
 
-                        <ResponsiveContainer width="100%" height={300}>
+                        <ResponsiveContainer width="100%" height={250}>
                             <BarChart data={categoryBreakdown} barCategoryGap="15%">
                                 <defs>
                                     <linearGradient id="gradCategory" x1="0" y1="0" x2="0" y2="1">
@@ -265,10 +265,10 @@ function Dashboard({
 
                 {/* Expenses Per User */}
                 <div className="chart-card">
-                    <div className="chart-container">
+                    <div className="chart-container" style={{ maxWidth: '600px', margin: '0 auto' }}>
                         <h3>Expenses Per User</h3>
 
-                        <ResponsiveContainer width="100%" height={300}>
+                        <ResponsiveContainer width="100%" height={250}>
                             <BarChart data={userBreakdown} barCategoryGap="15%">
                                 <defs>
                                     <linearGradient id="gradUser" x1="0" y1="0" x2="0" y2="1">
