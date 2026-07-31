@@ -30,7 +30,7 @@ function CalendarPicker({ dateRange, onDateChange }) {
         background: 'transparent',
         border: 'none',
         padding: 0,
-        margin: '0 8px',
+        margin: '0 2px',
         fontSize: '1.5rem',
         cursor: 'pointer',
         lineHeight: 1,
