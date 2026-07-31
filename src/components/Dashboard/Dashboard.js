@@ -231,7 +231,7 @@ function Dashboard({
                                     axisLine={false}
                                     tickLine={false}
                                 />
-                                <Tooltip content={<CustomTooltip />} />
+                                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)', radius: 8 }} />
                                 <Legend
                                     iconType="circle"
                                     wrapperStyle={{
@@ -243,7 +243,7 @@ function Dashboard({
                                     name="Amount"
                                     dataKey="value"
                                     fill="url(#gradCategory)"
-                                    radius={[6, 6, 0, 0]}
+                                    radius={[8, 8, 0, 0]}
                                     maxBarSize={40}
                                 />
                             </BarChart>
@@ -280,7 +280,7 @@ function Dashboard({
                                     axisLine={false}
                                     tickLine={false}
                                 />
-                                <Tooltip content={<CustomTooltip />} />
+                                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)', radius: 8 }} />
                                 <Legend
                                     iconType="circle"
                                     wrapperStyle={{
@@ -292,7 +292,7 @@ function Dashboard({
                                     name="Amount"
                                     dataKey="total"
                                     fill="url(#gradUser)"
-                                    radius={[6, 6, 0, 0]}
+                                    radius={[8, 8, 0, 0]}
                                     maxBarSize={40}
                                 />
                             </BarChart>
@@ -313,6 +313,21 @@ function Dashboard({
                                         barCategoryGap="25%"
                                         barSize={80}
                                     >
+                                        <defs>
+                                            {categoryNames.map((name, idx) => (
+                                                <linearGradient
+                                                    key={`gradStack${idx}`}
+                                                    id={`gradStack${idx}`}
+                                                    x1="0"
+                                                    y1="0"
+                                                    x2="0"
+                                                    y2="1"
+                                                >
+                                                    <stop offset="5%" stopColor={COLORS[idx]} stopOpacity={0.95} />
+                                                    <stop offset="95%" stopColor={COLORS[idx]} stopOpacity={0.6} />
+                                                </linearGradient>
+                                            ))}
+                                        </defs>
                                         <CartesianGrid
                                             strokeDasharray="3 3"
                                             stroke="#f0f2f5"
@@ -329,7 +344,7 @@ function Dashboard({
                                             axisLine={false}
                                             tickLine={false}
                                         />
-                                        <Tooltip content={<CustomTooltip />} />
+                                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)', radius: 8 }} />
                                         <Legend
                                             iconType="circle"
                                             wrapperStyle={{
@@ -344,8 +359,8 @@ function Dashboard({
                                                 name={name}
                                                 dataKey={name}
                                                 stackId="user-category-stack"
-                                                fill={COLORS[idx % COLORS.length]}
-                                                radius={[0, 0, 0, 0]}
+                                                fill={`url(#gradStack${idx})`}
+                                                radius={idx === categoryNames.length - 1 ? [8, 8, 0, 0] : [0, 0, 0, 0]}
                                                 maxBarSize={80}
                                             />
                                         ))}
