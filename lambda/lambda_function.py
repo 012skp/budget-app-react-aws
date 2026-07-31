@@ -173,6 +173,15 @@ def get_parameter(param_name):
     )
     return response['Parameter']['Value']
 
+def normalize_end_date(end_date):
+    """If end_date is only a date like YYYY-MM-DD, append 23:59:59 to capture the entire day."""
+    if not end_date:
+        return end_date
+    end_date = str(end_date)
+    if 'T' in end_date or ' ' in end_date:
+        return end_date
+    return end_date + ' 23:59:59'
+
 def lambda_handler(event, context):
     # Configuration
     INSTANCE_ID = 'i-04922d403f1790008'
@@ -308,8 +317,9 @@ def lambda_handler(event, context):
                     elif action == 'get_expenses_by_date_range':
                         start_date = data.get('startDate')
                         end_date = data.get('endDate')
+                        end_date = normalize_end_date(end_date)
                         cursor.execute(
-                            "SELECT * FROM Expenses WHERE DATE(Timestamp) BETWEEN %s AND %s ORDER BY Timestamp DESC",
+                            "SELECT * FROM Expenses WHERE Timestamp >= %s AND Timestamp <= %s ORDER BY Timestamp DESC",
                             (start_date, end_date)
                         )
                         expenses = cursor.fetchall()
@@ -401,11 +411,12 @@ def lambda_handler(event, context):
                     elif action == 'get_expenses_by_category':
                         start_date = data.get('startDate')
                         end_date = data.get('endDate')
+                        end_date = normalize_end_date(end_date)
                         cursor.execute("""
                             SELECT c.CategoryName, c.CategoryId, SUM(e.Amount) as TotalAmount, COUNT(e.ExpenseId) as ExpenseCount
                             FROM Expenses e
                             JOIN Categories c ON e.CategoryId = c.CategoryId
-                            WHERE DATE(e.Timestamp) BETWEEN %s AND %s
+                            WHERE e.Timestamp >= %s AND e.Timestamp <= %s
                             GROUP BY c.CategoryId, c.CategoryName
                             ORDER BY TotalAmount DESC
                         """, (start_date, end_date))
@@ -426,11 +437,12 @@ def lambda_handler(event, context):
                     elif action == 'get_expenses_by_user':
                         start_date = data.get('startDate')
                         end_date = data.get('endDate')
+                        end_date = normalize_end_date(end_date)
                         cursor.execute("""
                             SELECT u.Name, u.UserId, SUM(e.Amount) as TotalAmount, COUNT(e.ExpenseId) as ExpenseCount
                             FROM Expenses e
                             JOIN Users u ON e.UserId = u.UserId
-                            WHERE DATE(e.Timestamp) BETWEEN %s AND %s
+                            WHERE e.Timestamp >= %s AND e.Timestamp <= %s
                             GROUP BY u.UserId, u.Name
                             ORDER BY TotalAmount DESC
                         """, (start_date, end_date))

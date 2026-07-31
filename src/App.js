@@ -28,14 +28,15 @@ function App() {
         setCurrentPage(page);
     }, []);
 
-    // Compute filtered expenses based on date range
+    // Compute filtered expenses based on date range.
+    // We compare only the YYYY-MM-DD part so the whole endDate day is included.
     const filteredExpenses = useMemo(() => {
         if (!dateRange) return expenses;
-        return expenses.filter(expense =>
-            expense.Timestamp &&
-            expense.Timestamp >= dateRange.startDate &&
-            expense.Timestamp <= dateRange.endDate
-        );
+        return expenses.filter(expense => {
+            if (!expense.Timestamp) return false;
+            const expenseDate = expense.Timestamp.slice(0, 10);
+            return expenseDate >= dateRange.startDate && expenseDate <= dateRange.endDate;
+        });
     }, [expenses, dateRange]);
 
     // Fetch only users, categories, and expenses for the selected date range

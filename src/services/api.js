@@ -9,6 +9,14 @@ const api = axios.create({
     },
 });
 
+// Helper to make end dates inclusive of the full day
+const ensureEndOfDay = (dateStr) => {
+    if (!dateStr) return dateStr;
+    // If the string already contains a time part, don't modify it
+    if (/T|\s/.test(dateStr)) return dateStr;
+    return `${dateStr} 23:59:59`;
+};
+
 // Base API call function
 const callAPI = (payload) => api.post('/budget', payload);
 
@@ -23,7 +31,7 @@ export const expenseAPI = {
     getExpensesByDateRange: (startDate, endDate) => callAPI({
         action: "get_expenses_by_date_range",
         startDate,
-        endDate
+        endDate: ensureEndOfDay(endDate)
     }),
 
     // Get expenses by month
@@ -62,14 +70,14 @@ export const expenseAPI = {
     getExpensesByCategory: (startDate, endDate) => callAPI({
         action: "get_expenses_by_category",
         startDate,
-        endDate
+        endDate: ensureEndOfDay(endDate)
     }),
 
     // Get expense breakdown by user
     getExpensesByUser: (startDate, endDate) => callAPI({
         action: "get_expenses_by_user",
         startDate,
-        endDate
+        endDate: ensureEndOfDay(endDate)
     }),
 };
 
