@@ -1,7 +1,5 @@
+import React, { useMemo } from 'react';
 import {
-    PieChart,
-    Pie,
-    Cell,
     Tooltip,
     Legend,
     ResponsiveContainer,
@@ -9,39 +7,75 @@ import {
     Bar,
     XAxis,
     YAxis,
-    CartesianGrid
+    CartesianGrid,
+    defs,
+    linearGradient,
+    stop
 } from "recharts";
 
-import React, {useMemo} from 'react';
+import { getUserName, getCategoryName } from '../../utils/dataHelpers';
 
-import {getUserName, getCategoryName} from '../../utils/dataHelpers';
+const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+        return (
+            <div
+                style={{
+                    backgroundColor: '#fff',
+                    padding: '10px 14px',
+                    border: '1px solid #edf0f7',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    fontSize: '13px'
+                }}
+            >
+                <p style={{ margin: 0, fontWeight: 600, color: '#333' }}>{label}</p>
+                {payload.map((item, idx) => (
+                    <p
+                        key={idx}
+                        style={{
+                            margin: '6px 0 0',
+                            color: item.color || item.fill || '#333',
+                            fontWeight: 500
+                        }}
+                    >
+                        {item.name}: ₹{Number(item.value).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}
+                    </p>
+                ))}
+            </div>
+        );
+    }
+    return null;
+};
 
 function Dashboard({
-                       dateRange,
-                       filteredExpenses,
-                       users,
-                       categories,
-                       loading,
-                       apiStatus,
-                       onRefresh,
-                       onNavigate
-                   }) {
-
+    dateRange,
+    filteredExpenses,
+    users,
+    categories,
+    loading,
+    apiStatus,
+    onRefresh,
+    onNavigate
+}) {
     const { startDate, endDate } = dateRange;
 
     // Total of filtered expenses (date range)
-    const totalExpenses = useMemo(() =>
-        filteredExpenses.reduce(
-            (sum, expense) => sum + parseFloat(expense.Amount || 0),
-            0
-        ),
+    const totalExpenses = useMemo(
+        () =>
+            filteredExpenses.reduce(
+                (sum, expense) => sum + parseFloat(expense.Amount || 0),
+                0
+            ),
         [filteredExpenses]
     );
 
     // Compute category breakdown client-side
     const categoryBreakdown = useMemo(() => {
         const map = {};
-        filteredExpenses.forEach(exp => {
+        filteredExpenses.forEach((exp) => {
             const catId = exp.CategoryId;
             const catName = getCategoryName(catId, categories);
             const amount = parseFloat(exp.Amount) || 0;
@@ -53,7 +87,7 @@ function Dashboard({
     // Compute user breakdown client-side
     const userBreakdown = useMemo(() => {
         const map = {};
-        filteredExpenses.forEach(exp => {
+        filteredExpenses.forEach((exp) => {
             const userId = exp.UserId;
             const userName = getUserName(userId, users);
             const amount = parseFloat(exp.Amount) || 0;
@@ -73,7 +107,7 @@ function Dashboard({
             return acc;
         }, {});
         const map = {};
-        filteredExpenses.forEach(exp => {
+        filteredExpenses.forEach((exp) => {
             const userId = exp.UserId;
             const catId = exp.CategoryId;
             const userName = userNames[userId] || `User ${userId}`;
@@ -89,8 +123,8 @@ function Dashboard({
 
     const categoryNames = useMemo(() => {
         const set = new Set();
-        filteredExpenses.forEach(exp => {
-            const cat = categories.find(c => c.CategoryId === exp.CategoryId);
+        filteredExpenses.forEach((exp) => {
+            const cat = categories.find((c) => c.CategoryId === exp.CategoryId);
             if (cat) set.add(cat.CategoryName);
         });
         return Array.from(set);
@@ -102,7 +136,9 @@ function Dashboard({
         "#FFBB28",
         "#FF8042",
         "#8884D8",
-        "#82CA9D"
+        "#82CA9D",
+        "#FF6F91",
+        "#00C2D1"
     ];
 
     const handleRefresh = async () => {
@@ -134,9 +170,10 @@ function Dashboard({
                 >
                     <h3>Total Expenses</h3>
                     <p className="amount">
-                        ₹{totalExpenses.toLocaleString('en-IN', {
-                        minimumFractionDigits: 2
-                    })}
+                        ₹
+                        {totalExpenses.toLocaleString('en-IN', {
+                            minimumFractionDigits: 2
+                        })}
                     </p>
                     <small>{filteredExpenses.length} transactions</small>
                 </button>
@@ -163,80 +200,152 @@ function Dashboard({
                     <small>Active users</small>
                 </button>
             </div>
-            <div className="dashboard-charts">
 
+            <div className="dashboard-charts">
+                {/* Expenses Per Category */}
                 <div className="chart-card">
                     <div className="chart-container">
                         <h3>Expenses Per Category</h3>
 
                         <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={categoryBreakdown}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="name" />
-                                <YAxis />
-                                <Tooltip />
-                                <Legend />
-                                <Bar name="Amount" dataKey="value">
-                                    {categoryBreakdown.map((entry, index) => (
-                                        <Cell
-                                            key={index}
-                                            fill={COLORS[index % COLORS.length]}
-                                        />
-                                    ))}
-                                </Bar>
+                            <BarChart data={categoryBreakdown} barCategoryGap="15%">
+                                <defs>
+                                    <linearGradient id="gradCategory" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#4F73DF" stopOpacity={0.9} />
+                                        <stop offset="95%" stopColor="#4F73DF" stopOpacity={0.4} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid
+                                    strokeDasharray="3 3"
+                                    stroke="#f0f2f5"
+                                    vertical={false}
+                                />
+                                <XAxis
+                                    dataKey="name"
+                                    tick={{ fill: '#667', fontSize: 12 }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                />
+                                <YAxis
+                                    tick={{ fill: '#667', fontSize: 12 }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Legend
+                                    iconType="circle"
+                                    wrapperStyle={{
+                                        fontSize: 12,
+                                        paddingTop: 10
+                                    }}
+                                />
+                                <Bar
+                                    name="Amount"
+                                    dataKey="value"
+                                    fill="url(#gradCategory)"
+                                    radius={[6, 6, 0, 0]}
+                                    maxBarSize={40}
+                                />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
+                {/* Expenses Per User */}
                 <div className="chart-card">
                     <div className="chart-container">
                         <h3>Expenses Per User</h3>
 
                         <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={userBreakdown}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="name" />
-                                <YAxis />
-                                <Tooltip />
-                                <Legend />
-                                <Bar name="Amount" dataKey="total">
-                                    {userBreakdown.map((entry, index) => (
-                                        <Cell
-                                            key={index}
-                                            fill={COLORS[index % COLORS.length]}
-                                        />
-                                    ))}
-                                </Bar>
+                            <BarChart data={userBreakdown} barCategoryGap="15%">
+                                <defs>
+                                    <linearGradient id="gradUser" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#12B886" stopOpacity={0.9} />
+                                        <stop offset="95%" stopColor="#12B886" stopOpacity={0.4} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid
+                                    strokeDasharray="3 3"
+                                    stroke="#f0f2f5"
+                                    vertical={false}
+                                />
+                                <XAxis
+                                    dataKey="name"
+                                    tick={{ fill: '#667', fontSize: 12 }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                />
+                                <YAxis
+                                    tick={{ fill: '#667', fontSize: 12 }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Legend
+                                    iconType="circle"
+                                    wrapperStyle={{
+                                        fontSize: 12,
+                                        paddingTop: 10
+                                    }}
+                                />
+                                <Bar
+                                    name="Amount"
+                                    dataKey="total"
+                                    fill="url(#gradUser)"
+                                    radius={[6, 6, 0, 0]}
+                                    maxBarSize={40}
+                                />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
+                {/* Expense Per User Per Category */}
                 <div className="chart-card">
                     <div className="chart-container">
                         <h3>Expense Per User Per Category</h3>
 
                         <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                            <div style={{ maxWidth: '800px', width: '100%' }}>
-                                <ResponsiveContainer width="100%" height={300}>
+                            <div style={{ maxWidth: '1000px', width: '100%' }}>
+                                <ResponsiveContainer width="100%" height={350}>
                                     <BarChart
                                         data={userCategoryBreakdown}
-                                        barCategoryGap={0}
-                                        barGap={20}
-                                        barSize={25}
+                                        barCategoryGap="25%"
+                                        barGap={0}
+                                        barSize={22}
                                     >
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="name" />
-                                        <YAxis />
-                                        <Tooltip />
-                                        <Legend />
+                                        <CartesianGrid
+                                            strokeDasharray="3 3"
+                                            stroke="#f0f2f5"
+                                            vertical={false}
+                                        />
+                                        <XAxis
+                                            dataKey="name"
+                                            tick={{ fill: '#667', fontSize: 12 }}
+                                            axisLine={false}
+                                            tickLine={false}
+                                        />
+                                        <YAxis
+                                            tick={{ fill: '#667', fontSize: 12 }}
+                                            axisLine={false}
+                                            tickLine={false}
+                                        />
+                                        <Tooltip content={<CustomTooltip />} />
+                                        <Legend
+                                            iconType="circle"
+                                            wrapperStyle={{
+                                                fontSize: 12,
+                                                paddingTop: 10
+                                            }}
+                                        />
 
                                         {categoryNames.map((name, idx) => (
                                             <Bar
                                                 key={name}
+                                                name={name}
                                                 dataKey={name}
                                                 fill={COLORS[idx % COLORS.length]}
+                                                radius={[4, 4, 0, 0]}
                                             />
                                         ))}
                                     </BarChart>
@@ -245,7 +354,6 @@ function Dashboard({
                         </div>
                     </div>
                 </div>
-
             </div>
 
             <div className="recent-expenses">
@@ -255,44 +363,29 @@ function Dashboard({
                     <p>🔄 Loading expenses from AWS...</p>
                 ) : filteredExpenses.length > 0 ? (
                     <div className="expense-list">
-                        {filteredExpenses.slice(0, 5).map(expense => (
-                            <div
-                                key={expense.ExpenseId}
-                                className="expense-item"
-                            >
+                        {filteredExpenses.slice(0, 5).map((expense) => (
+                            <div key={expense.ExpenseId} className="expense-item">
                                 <div className="expense-info">
                                     <span className="expense-id">#{expense.ExpenseId}</span>
                                     <span className="expense-description">
                                         {expense.Description}
                                     </span>
-
                                     <span className="expense-category">
-                                        {getCategoryName(
-                                            expense.CategoryId,
-                                            categories
-                                        )}
+                                        {getCategoryName(expense.CategoryId, categories)}
                                     </span>
                                 </div>
 
                                 <div className="expense-details">
                                     <span className="expense-amount">
-                                        ₹{parseFloat(
-                                        expense.Amount
-                                    ).toLocaleString('en-IN', {
-                                        minimumFractionDigits: 2
-                                    })}
+                                        ₹
+                                        {parseFloat(expense.Amount).toLocaleString('en-IN', {
+                                            minimumFractionDigits: 2
+                                        })}
                                     </span>
-
                                     <span className="expense-user">
-                                        {getUserName(
-                                            expense.UserId,
-                                            users
-                                        )}
+                                        {getUserName(expense.UserId, users)}
                                     </span>
-
-                                    <span className="expense-date">
-                                        {expense.Timestamp}
-                                    </span>
+                                    <span className="expense-date">{expense.Timestamp}</span>
                                 </div>
                             </div>
                         ))}
