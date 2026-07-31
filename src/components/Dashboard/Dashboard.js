@@ -96,7 +96,7 @@ function Dashboard({
         return Object.entries(map).map(([name, total]) => ({ name, total }));
     }, [filteredExpenses, users]);
 
-    // Compute user‑category breakdown for grouped bar chart
+    // Compute user‑category breakdown for stacked bar chart
     const userCategoryBreakdown = useMemo(() => {
         const catNames = categories.reduce((acc, cat) => {
             acc[cat.CategoryId] = cat.CategoryName;
@@ -300,7 +300,7 @@ function Dashboard({
                     </div>
                 </div>
 
-                {/* Expense Per User Per Category */}
+                {/* Expense Per User Per Category – stacked bar */}
                 <div className="chart-card">
                     <div className="chart-container">
                         <h3>Expense Per User Per Category</h3>
@@ -311,8 +311,7 @@ function Dashboard({
                                     <BarChart
                                         data={userCategoryBreakdown}
                                         barCategoryGap="25%"
-                                        barGap={0}
-                                        barSize={22}
+                                        barSize={80}
                                     >
                                         <CartesianGrid
                                             strokeDasharray="3 3"
@@ -344,8 +343,10 @@ function Dashboard({
                                                 key={name}
                                                 name={name}
                                                 dataKey={name}
+                                                stackId="user-category-stack"
                                                 fill={COLORS[idx % COLORS.length]}
-                                                radius={[4, 4, 0, 0]}
+                                                radius={[0, 0, 0, 0]}
+                                                maxBarSize={80}
                                             />
                                         ))}
                                     </BarChart>
