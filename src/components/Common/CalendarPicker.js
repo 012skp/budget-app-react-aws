@@ -2,16 +2,6 @@ import React from 'react';
 import { addMonths, subMonths, startOfMonth, endOfMonth, format } from 'date-fns';
 
 function CalendarPicker({ dateRange, onDateChange }) {
-    const handleStartChange = (e) => {
-        const newStart = e.target.value;
-        onDateChange({ ...dateRange, startDate: newStart });
-    };
-
-    const handleEndChange = (e) => {
-        const newEnd = e.target.value;
-        onDateChange({ ...dateRange, endDate: newEnd });
-    };
-
     const shiftMonth = (direction) => {
         if (!dateRange || !dateRange.startDate) return;
 
@@ -28,37 +18,34 @@ function CalendarPicker({ dateRange, onDateChange }) {
         });
     };
 
+    const arrowStyle = {
+        background: 'transparent',
+        border: 'none',
+        padding: 0,
+        margin: '0 4px',
+        fontSize: '1.5rem',
+        cursor: 'pointer',
+        color: 'inherit',
+        lineHeight: 1,
+    };
+
     return (
-        <div className="calendar-picker">
+        <div style={{ display: 'inline-flex', alignItems: 'center', padding: 0, margin: 0, background: 'transparent' }}>
             <button
-                className="calendar-nav-btn prev"
+                style={arrowStyle}
                 onClick={() => shiftMonth(-1)}
                 aria-label="Previous month"
                 type="button"
             >
-                ⬅️
+                ⬅
             </button>
-            <div className="calendar-range">
-                <label>From:</label>
-                <input
-                    type="date"
-                    value={dateRange.startDate}
-                    onChange={handleStartChange}
-                />
-                <label>To:</label>
-                <input
-                    type="date"
-                    value={dateRange.endDate}
-                    onChange={handleEndChange}
-                />
-            </div>
             <button
-                className="calendar-nav-btn next"
+                style={arrowStyle}
                 onClick={() => shiftMonth(1)}
                 aria-label="Next month"
                 type="button"
             >
-                ➡️
+                ➡
             </button>
         </div>
     );
