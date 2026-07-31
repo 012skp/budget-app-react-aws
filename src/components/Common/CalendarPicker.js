@@ -31,9 +31,10 @@ function CalendarPicker({ dateRange, onDateChange }) {
         border: 'none',
         padding: 0,
         margin: '0 4px',
-        fontSize: '1.2rem',
+        fontSize: '1.4rem',
+        fontWeight: 'bold',
         cursor: 'pointer',
-        color: 'inherit',
+        color: '#28a745',  // same green as AWS connected checkmark
         lineHeight: 1,
     };
 
