@@ -72,7 +72,7 @@ function Dashboard({
         [filteredExpenses]
     );
 
-    // Compute category breakdown client-side
+    // Compute category breakdown client-side, sorted descending so highest is left
     const categoryBreakdown = useMemo(() => {
         const map = {};
         filteredExpenses.forEach((exp) => {
@@ -81,10 +81,12 @@ function Dashboard({
             const amount = parseFloat(exp.Amount) || 0;
             map[catName] = (map[catName] || 0) + amount;
         });
-        return Object.entries(map).map(([name, value]) => ({ name, value }));
+        return Object.entries(map)
+            .map(([name, value]) => ({ name, value }))
+            .sort((a, b) => b.value - a.value);
     }, [filteredExpenses, categories]);
 
-    // Compute user breakdown client-side
+    // Compute user breakdown client-side, sorted descending so highest is left
     const userBreakdown = useMemo(() => {
         const map = {};
         filteredExpenses.forEach((exp) => {
@@ -93,10 +95,12 @@ function Dashboard({
             const amount = parseFloat(exp.Amount) || 0;
             map[userName] = (map[userName] || 0) + amount;
         });
-        return Object.entries(map).map(([name, total]) => ({ name, total }));
+        return Object.entries(map)
+            .map(([name, total]) => ({ name, total }))
+            .sort((a, b) => b.total - a.total);
     }, [filteredExpenses, users]);
 
-    // Compute user‑category breakdown for stacked bar chart
+    // Compute user‑category breakdown for stacked bar chart, sorted by user total descending
     const userCategoryBreakdown = useMemo(() => {
         const catNames = categories.reduce((acc, cat) => {
             acc[cat.CategoryId] = cat.CategoryName;
@@ -118,7 +122,15 @@ function Dashboard({
             const amount = parseFloat(exp.Amount) || 0;
             map[userId][catName] = (map[userId][catName] || 0) + amount;
         });
-        return Object.values(map);
+        return Object.values(map).sort((a, b) => {
+            const sumA = Object.entries(a)
+                .filter(([key]) => key !== 'name')
+                .reduce((s, [, val]) => s + Number(val || 0), 0);
+            const sumB = Object.entries(b)
+                .filter(([key]) => key !== 'name')
+                .reduce((s, [, val]) => s + Number(val || 0), 0);
+            return sumB - sumA;
+        });
     }, [filteredExpenses, users, categories]);
 
     const categoryNames = useMemo(() => {
