@@ -16,6 +16,46 @@ import {
 
 import { getUserName, getCategoryName } from '../../utils/dataHelpers';
 
+const CATEGORY_COLOR_MAP = {
+    medical: "#2ecc71",
+    healthcare: "#2ecc71",
+    health: "#2ecc71",
+    medicine: "#2ecc71",
+    doctor: "#2ecc71",
+    hospital: "#2ecc71",
+    food: "#f39c12",
+    groceries: "#f39c12",
+    dining: "#f39c12",
+    restaurant: "#f39c12",
+    transport: "#3498db",
+    travel: "#3498db",
+    fuel: "#3498db",
+    gas: "#3498db",
+    rent: "#9b59b6",
+    housing: "#9b59b6",
+    utilities: "#9b59b6",
+    electricity: "#9b59b6",
+    entertainment: "#e91e63",
+    movies: "#e91e63",
+    fun: "#e91e63",
+    shopping: "#ff5722",
+    clothing: "#ff5722",
+    retail: "#ff5722",
+    education: "#00bcd4",
+    school: "#00bcd4",
+    tuition: "#00bcd4",
+    salary: "#95a5a6",
+    income: "#95a5a6",
+    other: "#95a5a6"
+};
+
+const getCategoryColor = (name, idx) => {
+    if (!name) return COLORS[idx % COLORS.length];
+    const key = name.trim().toLowerCase();
+    if (CATEGORY_COLOR_MAP[key]) return CATEGORY_COLOR_MAP[key];
+    return COLORS[idx % COLORS.length];
+};
+
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         const total = payload.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
@@ -61,6 +101,17 @@ const CustomTooltip = ({ active, payload, label }) => {
     }
     return null;
 };
+
+const COLORS = [
+    "#0088FE",
+    "#00C49F",
+    "#FFBB28",
+    "#FF8042",
+    "#8884D8",
+    "#82CA9D",
+    "#FF6F91",
+    "#00C2D1"
+];
 
 function Dashboard({
     dateRange,
@@ -160,17 +211,6 @@ function Dashboard({
         // Ascending order puts the highest total last, which becomes the top segment in the stacked bar
         return Object.keys(totals).sort((a, b) => totals[a] - totals[b]);
     }, [filteredExpenses, categories]);
-
-    const COLORS = [
-        "#0088FE",
-        "#00C49F",
-        "#FFBB28",
-        "#FF8042",
-        "#8884D8",
-        "#82CA9D",
-        "#FF6F91",
-        "#00C2D1"
-    ];
 
     const handleRefresh = async () => {
         if (onRefresh) await onRefresh();
@@ -315,8 +355,8 @@ function Dashboard({
                             <BarChart data={userBreakdown} barCategoryGap="15%" margin={{ top: 35, right: 20, left: 20, bottom: 5 }}>
                                 <defs>
                                     <linearGradient id="gradUser" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#12B886" stopOpacity={0.9} />
-                                        <stop offset="95%" stopColor="#12B886" stopOpacity={0.4} />
+                                        <stop offset="5%" stopColor="#4F73DF" stopOpacity={0.9} />
+                                        <stop offset="95%" stopColor="#4F73DF" stopOpacity={0.4} />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid
@@ -389,8 +429,8 @@ function Dashboard({
                                             x2="0"
                                             y2="1"
                                         >
-                                            <stop offset="5%" stopColor={COLORS[idx]} stopOpacity={0.95} />
-                                            <stop offset="95%" stopColor={COLORS[idx]} stopOpacity={0.6} />
+                                            <stop offset="5%" stopColor={getCategoryColor(name, idx)} stopOpacity={0.95} />
+                                            <stop offset="95%" stopColor={getCategoryColor(name, idx)} stopOpacity={0.6} />
                                         </linearGradient>
                                     ))}
                                 </defs>
