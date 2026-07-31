@@ -146,13 +146,18 @@ function Dashboard({
         });
     }, [filteredExpenses, users, categories]);
 
+    // Sort categories by total expense so the highest category appears at the top of each stacked bar
     const categoryNames = useMemo(() => {
-        const set = new Set();
+        const totals = {};
         filteredExpenses.forEach((exp) => {
             const cat = categories.find((c) => c.CategoryId === exp.CategoryId);
-            if (cat) set.add(cat.CategoryName);
+            if (cat) {
+                const name = cat.CategoryName;
+                totals[name] = (totals[name] || 0) + (parseFloat(exp.Amount) || 0);
+            }
         });
-        return Array.from(set);
+        // Ascending order puts the highest total last, which becomes the top segment in the stacked bar
+        return Object.keys(totals).sort((a, b) => totals[a] - totals[b]);
     }, [filteredExpenses, categories]);
 
     const COLORS = [
