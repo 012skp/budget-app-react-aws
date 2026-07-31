@@ -8,6 +8,7 @@ import {
     XAxis,
     YAxis,
     CartesianGrid,
+    LabelList,
     defs,
     linearGradient,
     stop
@@ -272,7 +273,17 @@ function Dashboard({
                                     radius={[8, 8, 0, 0]}
                                     maxBarSize={40}
                                     onClick={handleCategoryClick}
-                                />
+                                >
+                                    <LabelList
+                                        dataKey="value"
+                                        position="top"
+                                        formatter={(value) =>
+                                            totalExpenses > 0
+                                                ? `${((value / totalExpenses) * 100).toFixed(1)}%`
+                                                : '0%'
+                                        }
+                                    />
+                                </Bar>
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -322,7 +333,17 @@ function Dashboard({
                                     radius={[8, 8, 0, 0]}
                                     maxBarSize={40}
                                     onClick={handleUserClick}
-                                />
+                                >
+                                    <LabelList
+                                        dataKey="total"
+                                        position="top"
+                                        formatter={(value) =>
+                                            totalExpenses > 0
+                                                ? `${((value / totalExpenses) * 100).toFixed(1)}%`
+                                                : '0%'
+                                        }
+                                    />
+                                </Bar>
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
