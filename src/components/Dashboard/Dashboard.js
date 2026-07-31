@@ -19,6 +19,7 @@ import { getUserName, getCategoryName } from '../../utils/dataHelpers';
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         const total = payload.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
+        const sortedPayload = payload.slice().sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
         return (
             <div
                 style={{
@@ -31,8 +32,8 @@ const CustomTooltip = ({ active, payload, label }) => {
                 }}
             >
                 <p style={{ margin: 0, fontWeight: 600, color: '#333' }}>{label}</p>
-                {payload.map((item, idx) => {
-                    const pct = payload.length > 1 && total > 0
+                {sortedPayload.map((item, idx) => {
+                    const pct = sortedPayload.length > 1 && total > 0
                         ? ((Number(item.value) / total) * 100)
                         : null;
                     const displayName = pct !== null
