@@ -70,6 +70,25 @@ body {
   filter: invert(1);
 }
 
+/* Keep the date range picker on a single line */
+.calendar-range {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.calendar-range label {
+  font-size: 0.75rem;
+  margin-right: 0.1rem;
+}
+
+.calendar-range input[type="date"] {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.3rem;
+  width: 110px;
+}
+
 /* API Status - Simple and Clean */
 .api-status {
   font-size: 0.85rem;
@@ -750,5 +769,26 @@ body {
   .api-status {
     flex-wrap: wrap;
     justify-content: center;
+  }
+}
+
+/* Extra small screens: keep calendar picker on one line */
+@media (max-width: 480px) {
+  .calendar-range label {
+    display: none;
+  }
+
+  .calendar-range input[type="date"] {
+    width: 85px;
+    font-size: 0.7rem;
+    padding: 0.1rem 0.2rem;
+  }
+
+  .calendar-picker {
+    gap: 0.1rem;
+  }
+
+  .calendar-bar {
+    gap: 0.2rem;
   }
 }
