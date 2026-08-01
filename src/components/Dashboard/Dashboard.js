@@ -418,7 +418,7 @@ function Dashboard({
                         <h3>Expenses Per Category</h3>
 
                         <ResponsiveContainer width="100%" height={250}>
-                            <BarChart data={categoryBreakdown} barCategoryGap="15%" margin={{ top: 35, right: 20, left: 20, bottom: 70 }}>
+                            <BarChart data={categoryBreakdown} barCategoryGap="15%" margin={{ top: 35, right: 20, left: 20, bottom: 50 }}>
                                 <defs>
                                     <linearGradient id="gradCategory" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#4F73DF" stopOpacity={0.9} />
@@ -432,13 +432,11 @@ function Dashboard({
                                 />
                                 <XAxis
                                     dataKey="name"
-                                    tick={{ fill: '#667', fontSize: 11 }}
+                                    tick={{ fill: '#667', fontSize: 9 }}
                                     axisLine={false}
                                     tickLine={false}
                                     interval={0}
-                                    angle={-35}
-                                    textAnchor="end"
-                                    height={80}
+                                    height={50}
                                     tickMargin={5}
                                 />
                                 <YAxis
@@ -477,7 +475,7 @@ function Dashboard({
                         <h3>Expenses Per User</h3>
 
                         <ResponsiveContainer width="100%" height={250}>
-                            <BarChart data={userBreakdown} barCategoryGap="15%" margin={{ top: 35, right: 20, left: 20, bottom: 70 }}>
+                            <BarChart data={userBreakdown} barCategoryGap="15%" margin={{ top: 35, right: 20, left: 20, bottom: 50 }}>
                                 <defs>
                                     <linearGradient id="gradUser" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#4F73DF" stopOpacity={0.9} />
@@ -491,13 +489,11 @@ function Dashboard({
                                 />
                                 <XAxis
                                     dataKey="name"
-                                    tick={{ fill: '#667', fontSize: 11 }}
+                                    tick={{ fill: '#667', fontSize: 9 }}
                                     axisLine={false}
                                     tickLine={false}
                                     interval={0}
-                                    angle={-35}
-                                    textAnchor="end"
-                                    height={80}
+                                    height={50}
                                     tickMargin={5}
                                 />
                                 <YAxis
