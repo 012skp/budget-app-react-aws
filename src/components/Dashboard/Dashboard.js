@@ -642,7 +642,7 @@ function Dashboard({
                                     tickLine={false}
                                 />
                                 <Tooltip content={<DayWiseTooltip totalExpenses={totalExpenses} />} />
-                                <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+                                <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
 
                                 {categoryNames.map((name, idx) => (
                                     <Bar
