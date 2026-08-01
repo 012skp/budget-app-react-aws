@@ -522,7 +522,7 @@ function Dashboard({
             {/* Cumulative + category volume merged chart */}
             <div className="chart-card" style={{ width: '100%', marginTop: '20px' }}>
                 <div className="chart-container">
-                    <h3>Cumulative Expenses & Daily Category Volume</h3>
+                    <h3>Cumulative Expenses &amp; Daily Category Volume</h3>
 
                     <ResponsiveContainer width="100%" height={300}>
                         <ComposedChart data={dailyExpenseData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
