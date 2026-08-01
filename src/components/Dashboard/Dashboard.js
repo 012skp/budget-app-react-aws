@@ -663,6 +663,8 @@ function Dashboard({
                                     stroke="#4F73DF"
                                     strokeWidth={2}
                                     dot={false}
+                                    activeDot={false}
+                                    legendType="line"
                                 />
                             </ComposedChart>
                         </ResponsiveContainer>
