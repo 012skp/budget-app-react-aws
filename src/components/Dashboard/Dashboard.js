@@ -104,6 +104,61 @@ const CustomTooltip = ({ active, payload, label }) => {
     return null;
 };
 
+const DayWiseTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+        const data = payload[0].payload;
+        if (!data || data.cumulative === undefined) return null;
+        const totalTillDay = data.cumulative || 0;
+
+        return (
+            <div
+                style={{
+                    backgroundColor: '#fff',
+                    padding: '10px 14px',
+                    border: '1px solid #edf0f7',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    fontSize: '13px'
+                }}
+            >
+                <p style={{ margin: 0, fontWeight: 600, color: '#333' }}>
+                    Day {data.day} ({data.date})
+                </p>
+                {payload
+                    .filter(item => item.name !== 'Expense Till Day')
+                    .map((item, idx) => {
+                        const dailyAmount = Number(item.value) || 0;
+                        const catName = item.name;
+                        const cumAmount = data[`cum_${catName}`] || 0;
+                        const pct = totalTillDay > 0 ? (cumAmount / totalTillDay) * 100 : 0;
+                        return (
+                            <p
+                                key={idx}
+                                style={{
+                                    margin: '6px 0 0',
+                                    color: item.color || item.fill || '#333',
+                                    fontWeight: 500
+                                }}
+                            >
+                                {catName}: ₹{dailyAmount.toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })} ({pct.toFixed(1)}% till day)
+                            </p>
+                        );
+                    })}
+                <p style={{ margin: '6px 0 0', color: '#4F73DF', fontWeight: 600 }}>
+                    Expense Till Day: ₹{totalTillDay.toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    })}
+                </p>
+            </div>
+        );
+    }
+    return null;
+};
+
 const COLORS = [
     "#0088FE",
     "#00C49F",
@@ -260,9 +315,20 @@ function Dashboard({
         });
 
         let cumulative = 0;
+        const cumulativeByCategory = {};
+        categories.forEach(cat => {
+            cumulativeByCategory[cat.CategoryName] = 0;
+        });
+
         days.forEach(dayObj => {
             cumulative += (dayTotalMap[dayObj.date] || 0);
             dayObj.cumulative = cumulative;
+
+            categories.forEach(cat => {
+                const catName = cat.CategoryName;
+                cumulativeByCategory[catName] += (dayObj[catName] || 0);
+                dayObj[`cum_${catName}`] = cumulativeByCategory[catName];
+            });
         });
 
         return days;
@@ -552,7 +618,7 @@ function Dashboard({
                                     axisLine={false}
                                     tickLine={false}
                                 />
-                                <Tooltip content={<CustomTooltip />} />
+                                <Tooltip content={<DayWiseTooltip />} />
                                 <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
 
                                 {categoryNames.map((name, idx) => (
@@ -570,7 +636,7 @@ function Dashboard({
                                 <Line
                                     type="monotone"
                                     dataKey="cumulative"
-                                    name="Cumulative Expense"
+                                    name="Expense Till Day"
                                     stroke="#4F73DF"
                                     strokeWidth={2}
                                     dot={{ r: 3 }}
