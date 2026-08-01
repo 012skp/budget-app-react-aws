@@ -664,7 +664,7 @@ function Dashboard({
                                     strokeWidth={2}
                                     dot={false}
                                     activeDot={false}
-                                    legendType="line"
+                                    legendType="plainline"
                                 />
                             </ComposedChart>
                         </ResponsiveContainer>
