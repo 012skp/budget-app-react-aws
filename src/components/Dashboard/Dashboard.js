@@ -642,7 +642,7 @@ function Dashboard({
                                     tickLine={false}
                                 />
                                 <Tooltip content={<DayWiseTooltip totalExpenses={totalExpenses} />} />
-                                <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+                                <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
 
                                 {categoryNames.map((name, idx) => (
                                     <Bar
@@ -653,6 +653,7 @@ function Dashboard({
                                         fill={`url(#gradDay${idx})`}
                                         radius={idx === categoryNames.length - 1 ? [8, 8, 0, 0] : [0, 0, 0, 0]}
                                         maxBarSize={40}
+                                        legendType="circle"
                                     />
                                 ))}
 
