@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { categoryAPI } from '../../services/api';
+import Modal from '../Common/Modal';
+import FormField from '../Common/FormField';
 
 function CategoryManager({ categories, loading, onRefresh, onCategoryChange }) {
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -100,57 +102,51 @@ function CategoryManager({ categories, loading, onRefresh, onCategoryChange }) {
 
             <div className="form-card">
                 <h3>Add Category</h3>
-                <div className="form-group">
-                    <label className="form-label">Category Name</label>
+                <FormField label="Category Name">
                     <input
                         className="form-input"
                         placeholder="Category Name"
                         value={newCategoryName}
                         onChange={(e) => setNewCategoryName(e.target.value)}
                     />
-                </div>
-                <div className="form-group">
-                    <label className="form-label">Description</label>
+                </FormField>
+                <FormField label="Description">
                     <input
                         className="form-input"
                         placeholder="Description"
                         value={newDescription}
                         onChange={(e) => setNewDescription(e.target.value)}
                     />
-                </div>
+                </FormField>
                 <button className="btn-primary" onClick={addCategory}>Add Category</button>
             </div>
 
             {selectedCategory && (
-                <div className="modal-overlay" onClick={() => setSelectedCategory(null)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <h3>Edit Category #{selectedCategory.CategoryId}</h3>
+                <Modal onClose={() => setSelectedCategory(null)}>
+                    <h3>Edit Category #{selectedCategory.CategoryId}</h3>
 
-                        <div className="form-group">
-                            <label className="form-label">Category Name</label>
-                            <input
-                                className="form-input"
-                                value={editCategoryName}
-                                onChange={(e) => setEditCategoryName(e.target.value)}
-                            />
-                        </div>
+                    <FormField label="Category Name">
+                        <input
+                            className="form-input"
+                            value={editCategoryName}
+                            onChange={(e) => setEditCategoryName(e.target.value)}
+                        />
+                    </FormField>
 
-                        <div className="form-group">
-                            <label className="form-label">Description</label>
-                            <input
-                                className="form-input"
-                                value={editDescription}
-                                onChange={(e) => setEditDescription(e.target.value)}
-                            />
-                        </div>
+                    <FormField label="Description">
+                        <input
+                            className="form-input"
+                            value={editDescription}
+                            onChange={(e) => setEditDescription(e.target.value)}
+                        />
+                    </FormField>
 
-                        <div className="modal-actions">
-                            <button className="btn-primary" onClick={handleSave}>💾 Save</button>
-                            <button className="btn-danger" onClick={() => handleDelete(selectedCategory.CategoryId)}>🗑 Delete</button>
-                            <button className="btn-secondary" onClick={() => setSelectedCategory(null)}>❌ Cancel</button>
-                        </div>
+                    <div className="modal-actions">
+                        <button className="btn-primary" onClick={handleSave}>💾 Save</button>
+                        <button className="btn-danger" onClick={() => handleDelete(selectedCategory.CategoryId)}>🗑 Delete</button>
+                        <button className="btn-secondary" onClick={() => setSelectedCategory(null)}>❌ Cancel</button>
                     </div>
-                </div>
+                </Modal>
             )}
         </div>
     );

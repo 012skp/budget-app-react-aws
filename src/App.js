@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import './App.css';
-import { expenseAPI, userAPI, categoryAPI, stopInfraAPI } from './services/api';
+import { stopInfraAPI } from './services/api';
 import { dateHelpers } from './utils/dateHelpers';
 import CalendarPicker from './components/Common/CalendarPicker';
 
@@ -9,6 +9,8 @@ import ExpenseList from './components/Expenses/ExpenseList';
 import AddExpense from './components/Expenses/AddExpense'
 import UserManager from './components/Users/UserManager'
 import CategoryManager from './components/Categories/CategoryManager'
+import { useBaseData } from './hooks/useBaseData';
+import { useExpenses } from './hooks/useExpenses';
 
 function App() {
     const [currentPage, setCurrentPage] = useState('dashboard');
@@ -16,13 +18,11 @@ function App() {
         const current = dateHelpers.getCurrentMonth();
         return { startDate: current.start, endDate: current.end };
     });
-    const [expenses, setExpenses] = useState([]);
-    const [users, setUsers] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [apiStatus, setApiStatus] = useState('connecting');
     const [stoppingInfra, setStoppingInfra] = useState(false);
     const [expenseFilter, setExpenseFilter] = useState(null);
+
+    const { users, categories, refreshUsers, refreshCategories } = useBaseData();
+    const { expenses, loading, apiStatus, fetchExpenses } = useExpenses(dateRange);
 
     // Navigation callback – used by Dashboard to switch pages
     const handleNavigate = useCallback((page, filter) => {
@@ -40,109 +40,6 @@ function App() {
             return expenseDate >= dateRange.startDate && expenseDate <= dateRange.endDate;
         });
     }, [expenses, dateRange]);
-
-    // Fetch users & categories – only once on mount
-    useEffect(() => {
-        const fetchBaseData = async () => {
-            try {
-                const [usersRes, categoriesRes] = await Promise.all([
-                    userAPI.getUsers(),
-                    categoryAPI.getCategories()
-                ]);
-
-                setUsers(usersRes.data.users || []);
-                setCategories(categoriesRes.data.categories || []);
-
-                console.log('👥 Users loaded');
-                console.log('🏷️ Categories loaded');
-            } catch (error) {
-                console.error('❌ Base data fetch error:', error);
-
-                // Fallback demo data for users/categories
-                setUsers([
-                    { user_id: '1', name: 'John Doe', description: 'Primary user' },
-                    { user_id: '2', name: 'Jane Smith', description: 'Secondary user' }
-                ]);
-
-                setCategories([
-                    { category_id: '1', category_name: 'Food', description: 'Food and groceries' },
-                    { category_id: '2', category_name: 'Transport', description: 'Transportation costs' }
-                ]);
-            }
-        };
-
-        fetchBaseData();
-    }, []);
-
-    // Fetch expenses for the currently selected date range
-    const fetchExpenses = useCallback(async () => {
-        setLoading(true);
-        setApiStatus('connecting');
-
-        try {
-            console.log(`🔄 Loading expenses for ${dateRange.startDate} to ${dateRange.endDate}...`);
-
-            const expensesRes = await expenseAPI.getExpensesByDateRange(
-                dateRange.startDate,
-                dateRange.endDate
-            );
-
-            setExpenses(expensesRes.data.expenses || []);
-
-            setApiStatus('connected');
-            console.log('✅ Expenses loaded successfully!');
-        } catch (error) {
-            console.error('❌ API Error:', error);
-            setApiStatus('error');
-
-            const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to load expenses. Using sample data instead.';
-            alert(msg);
-
-            // Fallback sample expenses
-            setExpenses([
-                {
-                    expense_id: '1',
-                    amount: 1250.00,
-                    category_name: 'Food',
-                    description: 'Grocery shopping',
-                    expense_date: '2024-06-15',
-                    user_name: 'John Doe'
-                },
-                {
-                    expense_id: '2',
-                    amount: 850.00,
-                    category_name: 'Transport',
-                    description: 'Uber rides',
-                    expense_date: '2024-06-14',
-                    user_name: 'Jane Smith'
-                }
-            ]);
-        } finally {
-            setLoading(false);
-        }
-    }, [dateRange]);
-
-    // Refresh categories from the API so the UI cache stays in sync
-    const refreshCategories = useCallback(async () => {
-        try {
-            const res = await categoryAPI.getCategories();
-            setCategories(res.data.categories || []);
-            console.log('🏷️ Categories refreshed');
-        } catch (error) {
-            console.error('❌ Failed to refresh categories:', error);
-        }
-    }, []);
-
-    // Refresh users from the API so the UI cache stays in sync
-    const refreshUsers = useCallback(async () => {
-        try {
-            const res = await userAPI.getUsers();
-            setUsers(res.data.users || []);
-            console.log('👥 Users refreshed');
-        } catch (error) {
-            console.error('❌ Failed to refresh users:', error);
-        }
-    }, []);
 
     // Load expenses whenever date range changes (including on mount)
     useEffect(() => {

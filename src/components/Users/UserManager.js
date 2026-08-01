@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { userAPI } from '../../services/api';
+import Modal from '../Common/Modal';
+import FormField from '../Common/FormField';
 
 function UserManager({ users, loading, onRefresh, onUserChange }) {
     const [selectedUser, setSelectedUser] = useState(null);
@@ -104,57 +106,51 @@ function UserManager({ users, loading, onRefresh, onUserChange }) {
 
             <div className="form-card">
                 <h3>Add User</h3>
-                <div className="form-group">
-                    <label className="form-label">Name</label>
+                <FormField label="Name">
                     <input
                         className="form-input"
                         placeholder="User Name"
                         value={newName}
                         onChange={(e) => setNewName(e.target.value)}
                     />
-                </div>
-                <div className="form-group">
-                    <label className="form-label">Description</label>
+                </FormField>
+                <FormField label="Description">
                     <input
                         className="form-input"
                         placeholder="Description"
                         value={newDescription}
                         onChange={(e) => setNewDescription(e.target.value)}
                     />
-                </div>
+                </FormField>
                 <button className="btn-primary" onClick={addUser}>Add User</button>
             </div>
 
             {selectedUser && (
-                <div className="modal-overlay" onClick={() => setSelectedUser(null)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <h3>Edit User #{selectedUser.UserId}</h3>
+                <Modal onClose={() => setSelectedUser(null)}>
+                    <h3>Edit User #{selectedUser.UserId}</h3>
 
-                        <div className="form-group">
-                            <label className="form-label">Name</label>
-                            <input
-                                className="form-input"
-                                value={editName}
-                                onChange={(e) => setEditName(e.target.value)}
-                            />
-                        </div>
+                    <FormField label="Name">
+                        <input
+                            className="form-input"
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                        />
+                    </FormField>
 
-                        <div className="form-group">
-                            <label className="form-label">Description</label>
-                            <input
-                                className="form-input"
-                                value={editDescription}
-                                onChange={(e) => setEditDescription(e.target.value)}
-                            />
-                        </div>
+                    <FormField label="Description">
+                        <input
+                            className="form-input"
+                            value={editDescription}
+                            onChange={(e) => setEditDescription(e.target.value)}
+                        />
+                    </FormField>
 
-                        <div className="modal-actions">
-                            <button className="btn-primary" onClick={handleSave}>💾 Save</button>
-                            <button className="btn-danger" onClick={() => handleDelete(selectedUser.UserId)}>🗑 Delete</button>
-                            <button className="btn-secondary" onClick={() => setSelectedUser(null)}>❌ Cancel</button>
-                        </div>
+                    <div className="modal-actions">
+                        <button className="btn-primary" onClick={handleSave}>💾 Save</button>
+                        <button className="btn-danger" onClick={() => handleDelete(selectedUser.UserId)}>🗑 Delete</button>
+                        <button className="btn-secondary" onClick={() => setSelectedUser(null)}>❌ Cancel</button>
                     </div>
-                </div>
+                </Modal>
             )}
         </div>
     );
