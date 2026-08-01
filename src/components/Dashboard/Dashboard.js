@@ -104,7 +104,7 @@ const CustomTooltip = ({ active, payload, label }) => {
     return null;
 };
 
-const DayWiseTooltip = ({ active, payload }) => {
+const DayWiseTooltip = ({ active, payload, totalExpenses }) => {
     if (active && payload && payload.length) {
         const data = payload[0].payload;
         if (!data || data.cumulative === undefined) return null;
@@ -129,8 +129,7 @@ const DayWiseTooltip = ({ active, payload }) => {
                     .map((item, idx) => {
                         const dailyAmount = Number(item.value) || 0;
                         const catName = item.name;
-                        const cumAmount = data[`cum_${catName}`] || 0;
-                        const pct = totalTillDay > 0 ? (cumAmount / totalTillDay) * 100 : 0;
+                        const pct = totalExpenses > 0 ? (dailyAmount / totalExpenses) * 100 : 0;
                         return (
                             <p
                                 key={idx}
@@ -143,7 +142,7 @@ const DayWiseTooltip = ({ active, payload }) => {
                                 {catName}: ₹{dailyAmount.toLocaleString('en-IN', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
-                                })} ({pct.toFixed(1)}% till day)
+                                })} ({pct.toFixed(1)}% of total till today)
                             </p>
                         );
                     })}
@@ -618,7 +617,7 @@ function Dashboard({
                                     axisLine={false}
                                     tickLine={false}
                                 />
-                                <Tooltip content={<DayWiseTooltip />} />
+                                <Tooltip content={<DayWiseTooltip totalExpenses={totalExpenses} />} />
                                 <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
 
                                 {categoryNames.map((name, idx) => (
