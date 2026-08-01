@@ -110,12 +110,22 @@ const DayWiseTooltip = ({ active, payload, totalExpenses }) => {
         if (!data || data.cumulative === undefined) return null;
         const totalTillDay = data.cumulative || 0;
 
+        // Format date as e.g. "1 Aug 2026"
+        const dateObj = new Date(data.date + 'T00:00:00');
+        const dateLabel = dateObj.toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
+
+        // Get positive categories, excluding the cumulative total line
         const categories = payload
-            .filter(item => item.name !== 'Expense Till Day')
-            .filter(item => (Number(item.value) || 0) > 0);
-        const sortedCategories = categories
-            .slice()
+            .filter(item => item.name !== 'Total Expense')
+            .filter(item => (Number(item.value) || 0) > 0)
             .sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
+
+        // Today's expense = sum of all positive category amounts
+        const todayExpense = categories.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
 
         return (
             <div
@@ -129,9 +139,21 @@ const DayWiseTooltip = ({ active, payload, totalExpenses }) => {
                 }}
             >
                 <p style={{ margin: 0, fontWeight: 600, color: '#333' }}>
-                    Day {data.day} ({data.date})
+                    {dateLabel}
                 </p>
-                {sortedCategories.map((item, idx) => {
+                <p style={{ margin: '6px 0 0', color: '#4F73DF', fontWeight: 600 }}>
+                    Total Expense: ₹{totalTillDay.toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    })}
+                </p>
+                <p style={{ margin: '6px 0 0', color: '#333', fontWeight: 600 }}>
+                    Today's Expense: ₹{todayExpense.toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    })}
+                </p>
+                {categories.map((item, idx) => {
                     const dailyAmount = Number(item.value) || 0;
                     const catName = item.name;
                     const pct = totalExpenses > 0 ? (dailyAmount / totalExpenses) * 100 : 0;
@@ -152,12 +174,6 @@ const DayWiseTooltip = ({ active, payload, totalExpenses }) => {
                         </p>
                     );
                 })}
-                <p style={{ margin: '6px 0 0', color: '#4F73DF', fontWeight: 600 }}>
-                    Expense Till Day: ₹{totalTillDay.toLocaleString('en-IN', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    })}
-                </p>
             </div>
         );
     }
@@ -643,7 +659,7 @@ function Dashboard({
                                 <Line
                                     type="monotone"
                                     dataKey="cumulative"
-                                    name="Expense Till Day"
+                                    name="Total Expense"
                                     stroke="#4F73DF"
                                     strokeWidth={2}
                                     dot={false}
