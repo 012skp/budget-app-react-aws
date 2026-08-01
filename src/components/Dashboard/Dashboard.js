@@ -646,7 +646,7 @@ function Dashboard({
                                     name="Expense Till Day"
                                     stroke="#4F73DF"
                                     strokeWidth={2}
-                                    dot={{ r: 3 }}
+                                    dot={false}
                                 />
                             </ComposedChart>
                         </ResponsiveContainer>
