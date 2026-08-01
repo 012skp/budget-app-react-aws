@@ -38,6 +38,17 @@ function DayWiseChart({ data, categoryNames, totalExpenses }) {
         return datePart <= todayStr;
     });
 
+    // Format a YYYY-MM-DD string as "1 Jul" or "31 Aug"
+    const formatDayTick = (dateStr) => {
+        if (!dateStr) return '';
+        const d = new Date(dateStr + 'T00:00:00');
+        if (isNaN(d.getTime())) return dateStr;
+        return d.toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short'
+        });
+    };
+
     return (
         <ChartCard title="Day Wise Expenses">
             <ResponsiveContainer width="100%" height={250}>
@@ -59,11 +70,13 @@ function DayWiseChart({ data, categoryNames, totalExpenses }) {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" vertical={false} />
                     <XAxis
-                        dataKey="day"
+                        dataKey="date"
+                        tickFormatter={formatDayTick}
                         tick={{ fill: '#667', fontSize: 12 }}
                         axisLine={false}
                         tickLine={false}
-                        label={{ value: 'Day', position: 'insideBottom', offset: -5 }}
+                        minTickGap={20}
+                        label={{ value: 'Date', position: 'insideBottom', offset: -5 }}
                     />
                     <YAxis
                         tick={{ fill: '#667', fontSize: 12 }}
