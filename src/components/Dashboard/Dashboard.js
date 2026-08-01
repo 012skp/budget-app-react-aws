@@ -9,7 +9,6 @@ import {
     YAxis,
     CartesianGrid,
     LabelList,
-    LineChart,
     Line,
     ComposedChart,
     defs,
@@ -517,68 +516,68 @@ function Dashboard({
                         </ResponsiveContainer>
                     </div>
                 </div>
-            </div>
 
-            {/* Cumulative + category volume merged chart */}
-            <div className="chart-card" style={{ width: '100%', marginTop: '20px' }}>
-                <div className="chart-container">
-                    <h3>Cumulative Expenses &amp; Daily Category Volume</h3>
+                {/* Day wise Expenses – merged cumulative + category volume */}
+                <div className="chart-card" style={{ flex: '1 1 300px', minWidth: '0' }}>
+                    <div className="chart-container" style={{ width: '100%' }}>
+                        <h3>Day wise Expenses</h3>
 
-                    <ResponsiveContainer width="100%" height={300}>
-                        <ComposedChart data={dailyExpenseData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
-                            <defs>
-                                {categoryNames.map((name, idx) => (
-                                    <linearGradient
-                                        key={`gradDay${idx}`}
-                                        id={`gradDay${idx}`}
-                                        x1="0"
-                                        y1="0"
-                                        x2="0"
-                                        y2="1"
-                                    >
-                                        <stop offset="5%" stopColor={getCategoryColor(name, idx)} stopOpacity={0.95} />
-                                        <stop offset="95%" stopColor={getCategoryColor(name, idx)} stopOpacity={0.6} />
-                                    </linearGradient>
-                                ))}
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" vertical={false} />
-                            <XAxis
-                                dataKey="day"
-                                tick={{ fill: '#667', fontSize: 12 }}
-                                axisLine={false}
-                                tickLine={false}
-                                label={{ value: 'Day', position: 'insideBottom', offset: -5 }}
-                            />
-                            <YAxis
-                                tick={{ fill: '#667', fontSize: 12 }}
-                                axisLine={false}
-                                tickLine={false}
-                            />
-                            <Tooltip content={<CustomTooltip />} />
-                            <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
-
-                            {categoryNames.map((name, idx) => (
-                                <Bar
-                                    key={name}
-                                    name={name}
-                                    dataKey={name}
-                                    stackId="day-volume"
-                                    fill={`url(#gradDay${idx})`}
-                                    radius={idx === categoryNames.length - 1 ? [8, 8, 0, 0] : [0, 0, 0, 0]}
-                                    maxBarSize={40}
+                        <ResponsiveContainer width="100%" height={250}>
+                            <ComposedChart data={dailyExpenseData} margin={{ top: 20, right: 20, left: 20, bottom: 5 }}>
+                                <defs>
+                                    {categoryNames.map((name, idx) => (
+                                        <linearGradient
+                                            key={`gradDay${idx}`}
+                                            id={`gradDay${idx}`}
+                                            x1="0"
+                                            y1="0"
+                                            x2="0"
+                                            y2="1"
+                                        >
+                                            <stop offset="5%" stopColor={getCategoryColor(name, idx)} stopOpacity={0.95} />
+                                            <stop offset="95%" stopColor={getCategoryColor(name, idx)} stopOpacity={0.6} />
+                                        </linearGradient>
+                                    ))}
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" vertical={false} />
+                                <XAxis
+                                    dataKey="day"
+                                    tick={{ fill: '#667', fontSize: 12 }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    label={{ value: 'Day', position: 'insideBottom', offset: -5 }}
                                 />
-                            ))}
+                                <YAxis
+                                    tick={{ fill: '#667', fontSize: 12 }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
 
-                            <Line
-                                type="monotone"
-                                dataKey="cumulative"
-                                name="Cumulative Expense"
-                                stroke="#4F73DF"
-                                strokeWidth={2}
-                                dot={{ r: 3 }}
-                            />
-                        </ComposedChart>
-                    </ResponsiveContainer>
+                                {categoryNames.map((name, idx) => (
+                                    <Bar
+                                        key={name}
+                                        name={name}
+                                        dataKey={name}
+                                        stackId="day-volume"
+                                        fill={`url(#gradDay${idx})`}
+                                        radius={idx === categoryNames.length - 1 ? [8, 8, 0, 0] : [0, 0, 0, 0]}
+                                        maxBarSize={40}
+                                    />
+                                ))}
+
+                                <Line
+                                    type="monotone"
+                                    dataKey="cumulative"
+                                    name="Cumulative Expense"
+                                    stroke="#4F73DF"
+                                    strokeWidth={2}
+                                    dot={{ r: 3 }}
+                                />
+                            </ComposedChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </div>
 
