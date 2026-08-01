@@ -11,6 +11,7 @@ import {
     LabelList,
     LineChart,
     Line,
+    ComposedChart,
     defs,
     linearGradient,
     stop
@@ -518,13 +519,28 @@ function Dashboard({
                 </div>
             </div>
 
-            {/* Cumulative expenses & daily category volume */}
+            {/* Cumulative + category volume merged chart */}
             <div className="chart-card" style={{ width: '100%', marginTop: '20px' }}>
                 <div className="chart-container">
-                    <h3>Cumulative Expenses by Day</h3>
+                    <h3>Cumulative Expenses & Daily Category Volume</h3>
 
                     <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={dailyExpenseData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+                        <ComposedChart data={dailyExpenseData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+                            <defs>
+                                {categoryNames.map((name, idx) => (
+                                    <linearGradient
+                                        key={`gradDay${idx}`}
+                                        id={`gradDay${idx}`}
+                                        x1="0"
+                                        y1="0"
+                                        x2="0"
+                                        y2="1"
+                                    >
+                                        <stop offset="5%" stopColor={getCategoryColor(name, idx)} stopOpacity={0.95} />
+                                        <stop offset="95%" stopColor={getCategoryColor(name, idx)} stopOpacity={0.6} />
+                                    </linearGradient>
+                                ))}
+                            </defs>
                             <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" vertical={false} />
                             <XAxis
                                 dataKey="day"
@@ -540,6 +556,19 @@ function Dashboard({
                             />
                             <Tooltip content={<CustomTooltip />} />
                             <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+
+                            {categoryNames.map((name, idx) => (
+                                <Bar
+                                    key={name}
+                                    name={name}
+                                    dataKey={name}
+                                    stackId="day-volume"
+                                    fill={`url(#gradDay${idx})`}
+                                    radius={idx === categoryNames.length - 1 ? [8, 8, 0, 0] : [0, 0, 0, 0]}
+                                    maxBarSize={40}
+                                />
+                            ))}
+
                             <Line
                                 type="monotone"
                                 dataKey="cumulative"
@@ -548,40 +577,7 @@ function Dashboard({
                                 strokeWidth={2}
                                 dot={{ r: 3 }}
                             />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </div>
-
-                <div className="chart-container" style={{ marginTop: '20px' }}>
-                    <h3>Daily Expense Volume by Category</h3>
-
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={dailyExpenseData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" vertical={false} />
-                            <XAxis
-                                dataKey="day"
-                                tick={{ fill: '#667', fontSize: 12 }}
-                                axisLine={false}
-                                tickLine={false}
-                                label={{ value: 'Day', position: 'insideBottom', offset: -5 }}
-                            />
-                            <YAxis
-                                tick={{ fill: '#667', fontSize: 12 }}
-                                axisLine={false}
-                                tickLine={false}
-                            />
-                            <Tooltip content={<CustomTooltip />} />
-                            <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
-                            {categoryNames.map((name, idx) => (
-                                <Bar
-                                    key={name}
-                                    name={name}
-                                    dataKey={name}
-                                    stackId="day-volume"
-                                    fill={getCategoryColor(name, idx)}
-                                />
-                            ))}
-                        </BarChart>
+                        </ComposedChart>
                     </ResponsiveContainer>
                 </div>
             </div>
