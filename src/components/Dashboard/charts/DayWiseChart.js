@@ -18,10 +18,30 @@ import DayWiseTooltip from './DayWiseTooltip';
 import { getCategoryColor } from '../../../utils/chartColors';
 
 function DayWiseChart({ data, categoryNames, totalExpenses }) {
+    // Today's date in YYYY-MM-DD format (local time)
+    const today = new Date();
+    const todayStr = [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, '0'),
+        String(today.getDate()).padStart(2, '0')
+    ].join('-');
+
+    // Only include days up to today. Future dates shouldn't appear because
+    // expenses can't be added for future days.
+    const chartData = (data || []).filter(entry => {
+        const datePart = (entry.date || entry.day || '').slice(0, 10);
+        // If we don't have a parsable date, keep the entry (this preserves
+        // behaviour for fallback/legacy data that only contains a day number).
+        if (!/^\d{4}-\d{2}-\d{2}/.test(datePart)) {
+            return true;
+        }
+        return datePart <= todayStr;
+    });
+
     return (
         <ChartCard title="Day Wise Expenses">
             <ResponsiveContainer width="100%" height={250}>
-                <ComposedChart data={data} margin={{ top: 20, right: 20, left: 20, bottom: 5 }}>
+                <ComposedChart data={chartData} margin={{ top: 20, right: 20, left: 20, bottom: 5 }}>
                     <defs>
                         {categoryNames.map((name, idx) => (
                             <linearGradient
