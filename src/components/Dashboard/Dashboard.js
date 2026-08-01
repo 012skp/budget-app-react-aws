@@ -517,10 +517,10 @@ function Dashboard({
                     </div>
                 </div>
 
-                {/* Day wise Expenses – merged cumulative + category volume */}
+                {/* Day Wise Expenses – merged cumulative + category volume */}
                 <div className="chart-card" style={{ flex: '1 1 300px', minWidth: '0' }}>
                     <div className="chart-container" style={{ width: '100%' }}>
-                        <h3>Day wise Expenses</h3>
+                        <h3>Day Wise Expenses</h3>
 
                         <ResponsiveContainer width="100%" height={250}>
                             <ComposedChart data={dailyExpenseData} margin={{ top: 20, right: 20, left: 20, bottom: 5 }}>
