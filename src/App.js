@@ -122,6 +122,17 @@ function App() {
         }
     }, [dateRange]);
 
+    // Refresh categories from the API so the UI cache stays in sync
+    const refreshCategories = useCallback(async () => {
+        try {
+            const res = await categoryAPI.getCategories();
+            setCategories(res.data.categories || []);
+            console.log('🏷️ Categories refreshed');
+        } catch (error) {
+            console.error('❌ Failed to refresh categories:', error);
+        }
+    }, []);
+
     // Load expenses whenever date range changes (including on mount)
     useEffect(() => {
         fetchExpenses();
@@ -181,7 +192,7 @@ function App() {
             case 'users':
                 return <UserManager users={users} loading={loading} onRefresh={fetchExpenses} />;
             case 'categories':
-                return <CategoryManager categories={categories} loading={loading} onRefresh={fetchExpenses} />;
+                return <CategoryManager categories={categories} loading={loading} onRefresh={fetchExpenses} onCategoryChange={refreshCategories} />;
             default:
                 return <Dashboard
                     dateRange={dateRange}

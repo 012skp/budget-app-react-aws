@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { categoryAPI } from '../../services/api';
 
-function CategoryManager({ categories, loading, onRefresh }) {
+function CategoryManager({ categories, loading, onRefresh, onCategoryChange }) {
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [editCategoryName, setEditCategoryName] = useState('');
     const [editDescription, setEditDescription] = useState('');
@@ -25,6 +25,7 @@ function CategoryManager({ categories, loading, onRefresh }) {
             alert('Category updated successfully');
             setSelectedCategory(null);
             onRefresh();
+            onCategoryChange?.();
         } catch (error) {
             console.error(error);
             const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to update category';
@@ -40,6 +41,7 @@ function CategoryManager({ categories, loading, onRefresh }) {
             alert('Category deleted successfully');
             setSelectedCategory(null);
             onRefresh();
+            onCategoryChange?.();
         } catch (error) {
             console.error(error);
             const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to delete category';
@@ -58,6 +60,7 @@ function CategoryManager({ categories, loading, onRefresh }) {
             setNewCategoryName('');
             setNewDescription('');
             onRefresh();
+            onCategoryChange?.();
         } catch (error) {
             console.error(error);
             const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to add category';
