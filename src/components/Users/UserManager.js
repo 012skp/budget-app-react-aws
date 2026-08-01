@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { userAPI } from '../../services/api';
 
-function UserManager({ users, loading, onRefresh }) {
+function UserManager({ users, loading, onRefresh, onUserChange }) {
     const [selectedUser, setSelectedUser] = useState(null);
     const [editName, setEditName] = useState('');
     const [editDescription, setEditDescription] = useState('');
@@ -25,6 +25,7 @@ function UserManager({ users, loading, onRefresh }) {
             alert('User updated successfully');
             setSelectedUser(null);
             onRefresh();
+            onUserChange?.();
         } catch (error) {
             console.error(error);
             const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to update user';
@@ -44,6 +45,7 @@ function UserManager({ users, loading, onRefresh }) {
             );
             setSelectedUser(null);
             onRefresh();
+            onUserChange?.();
         } catch (error) {
             console.error(error);
             const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to delete user';
@@ -57,11 +59,12 @@ function UserManager({ users, loading, onRefresh }) {
             return;
         }
         try {
-            const response = await userAPI.addUser(newName, newDescription);
+            await userAPI.addUser(newName, newDescription);
             alert('User added successfully');
             setNewName('');
             setNewDescription('');
             onRefresh();
+            onUserChange?.();
         } catch (error) {
             console.error(error);
             const msg = error.response?.data?.error || error.response?.data?.message || 'Failed to add user';

@@ -133,6 +133,17 @@ function App() {
         }
     }, []);
 
+    // Refresh users from the API so the UI cache stays in sync
+    const refreshUsers = useCallback(async () => {
+        try {
+            const res = await userAPI.getUsers();
+            setUsers(res.data.users || []);
+            console.log('👥 Users refreshed');
+        } catch (error) {
+            console.error('❌ Failed to refresh users:', error);
+        }
+    }, []);
+
     // Load expenses whenever date range changes (including on mount)
     useEffect(() => {
         fetchExpenses();
@@ -190,7 +201,7 @@ function App() {
             case 'add-expense':
                 return <AddExpense users={users} categories={categories} onExpenseAdded={fetchExpenses} />;
             case 'users':
-                return <UserManager users={users} loading={loading} onRefresh={fetchExpenses} />;
+                return <UserManager users={users} loading={loading} onRefresh={fetchExpenses} onUserChange={refreshUsers} />;
             case 'categories':
                 return <CategoryManager categories={categories} loading={loading} onRefresh={fetchExpenses} onCategoryChange={refreshCategories} />;
             default:
