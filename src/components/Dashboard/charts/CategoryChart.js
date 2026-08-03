@@ -32,14 +32,13 @@ function getTextWidth(text, font = '12px sans-serif') {
 function CategoryChart({ data, totalExpenses, onCategoryClick }) {
     // Use the actual pixel width of the longest category name to determine
     // the smallest chart width that won't cause x‑axis labels to overlap.
-    const categoryCount = data.length || 1;
     const longestLabelWidth = Math.max(
         ...(data.map(item => (item.name ? getTextWidth(item.name) : 0))),
         0
     );
     const minBarWidth = Math.max(
         60,
-        Math.ceil(longestLabelWidth + 40 / categoryCount)
+        Math.ceil(longestLabelWidth + 24)
     );
     const chartMinWidth = Math.max(data.length * minBarWidth, 400);
 
