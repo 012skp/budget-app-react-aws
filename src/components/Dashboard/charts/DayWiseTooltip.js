@@ -1,10 +1,12 @@
 import React from 'react';
+import { getCategoryColor } from '../../../utils/chartColors';
 
-function DayWiseTooltip({ active, payload, totalExpenses }) {
+function DayWiseTooltip({ active, payload, categoryNames = [], totalExpenses }) {
     if (!active || !payload || !payload.length) return null;
 
     const data = payload[0].payload;
     if (!data || data.cumulative === undefined) return null;
+
     const totalTillDay = data.cumulative || 0;
 
     // Format date as e.g. "1 Aug 2026"
@@ -15,14 +17,29 @@ function DayWiseTooltip({ active, payload, totalExpenses }) {
         year: 'numeric'
     });
 
-    // Get positive categories, excluding the cumulative total line
-    const categories = payload
-        .filter(item => item.name !== 'Total Expense')
-        .filter(item => (Number(item.value) || 0) > 0)
-        .sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
+    const catIdxMap = new Map(categoryNames.map((cat, idx) => [cat, idx]));
 
-    // Today's expense = sum of all positive category amounts
-    const todayExpense = categories.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
+    // Extract the per-category segments from the payload.
+    // Only Bar entries with dataKey like "c0", "c1", ... are considered.
+    const rankRegex = /^c(\d+)$/;
+    const items = payload
+        .map(entry => {
+            const match = entry.dataKey.toString().match(rankRegex);
+            if (!match) return null;
+            const rank = Number(match[1]);
+            const cat = entry.payload[`c${rank}Cat`];
+            const value = Number(entry.value) || 0;
+            return { rank, cat, value };
+        })
+        .filter(item => item && item.value > 0)
+        .sort((a, b) => b.rank - a.rank); // top of stack first (largest expense first)
+
+    const todayExpense = items.reduce((sum, item) => sum + item.value, 0);
+
+    const num = new Intl.NumberFormat('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
 
     return (
         <div
@@ -39,38 +56,46 @@ function DayWiseTooltip({ active, payload, totalExpenses }) {
                 {dateLabel}
             </p>
             <p style={{ margin: '6px 0 0', color: '#4F73DF', fontWeight: 600 }}>
-                Total Expense: ₹{totalTillDay.toLocaleString('en-IN', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                })}
+                Total Expense: ₹{num.format(totalTillDay)}
             </p>
-            <p style={{ margin: '6px 0 0', color: '#333', fontWeight: 600 }}>
-                Today's Expense: ₹{todayExpense.toLocaleString('en-IN', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                })}
-            </p>
-            {categories.map((item, idx) => {
-                const dailyAmount = Number(item.value) || 0;
-                const catName = item.name;
-                const pct = totalExpenses > 0 ? (dailyAmount / totalExpenses) * 100 : 0;
 
-                return (
-                    <p
-                        key={idx}
-                        style={{
-                            margin: '6px 0 0',
-                            color: item.color || item.fill || '#333',
-                            fontWeight: 500
-                        }}
-                    >
-                        {catName} ({pct.toFixed(1)}%): ₹{dailyAmount.toLocaleString('en-IN', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}
-                    </p>
-                );
-            })}
+            {items.length > 0 && (
+                <>
+                    <hr style={{ margin: '8px 0', border: 'none', borderTop: '1px solid #edf0f7' }} />
+                    {items.map(item => {
+                        const pct = todayExpense > 0 ? (item.value / todayExpense) * 100 : 0;
+                        return (
+                            <div
+                                key={item.cat}
+                                style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}
+                            >
+                                <span
+                                    style={{
+                                        width: 10,
+                                        height: 10,
+                                        borderRadius: '50%',
+                                        background: getCategoryColor(item.cat, catIdxMap.get(item.cat) ?? 0)
+                                    }}
+                                />
+                                <span>
+                                    {item.cat}{' '}
+                                    <span style={{ color: '#999', fontSize: 11 }}>
+                                        ({pct.toFixed(1)}%)
+                                    </span>
+                                </span>
+                                <span style={{ marginLeft: 'auto', fontWeight: 'bold' }}>
+                                    ₹{num.format(item.value)}
+                                </span>
+                            </div>
+                        );
+                    })}
+                    <hr style={{ margin: '8px 0', border: 'none', borderTop: '1px solid #edf0f7' }} />
+                </>
+            )}
+
+            <p style={{ margin: '6px 0 0', color: '#333', fontWeight: 600 }}>
+                Today's Expense: ₹{num.format(todayExpense)}
+            </p>
         </div>
     );
 }
