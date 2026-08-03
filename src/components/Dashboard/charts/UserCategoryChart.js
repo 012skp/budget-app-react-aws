@@ -50,14 +50,13 @@ function UserCategoryChart({ data, categoryNames }) {
 
     // Use the actual pixel width of the longest user name to determine
     // the smallest chart width that won't cause x‑axis labels to overlap.
-    const userCount = chartData.length || 1;
     const longestLabelWidth = Math.max(
         ...(chartData.map(item => (item.name ? getTextWidth(item.name) : 0))),
         0
     );
     const minBarWidth = Math.max(
         60,
-        Math.ceil(longestLabelWidth + 40 / userCount)
+        Math.ceil(longestLabelWidth + 12)
     );
     const chartMinWidth = Math.max(chartData.length * minBarWidth, 400);
 

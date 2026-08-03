@@ -32,14 +32,13 @@ function getTextWidth(text, font = '12px sans-serif') {
 function UserChart({ data, totalExpenses, onUserClick }) {
     // Use the actual pixel width of the longest user name to determine
     // the smallest chart width that won't cause x‑axis labels to overlap.
-    const userCount = data.length || 1;
     const longestLabelWidth = Math.max(
         ...(data.map(item => (item.name ? getTextWidth(item.name) : 0))),
         0
     );
     const minBarWidth = Math.max(
         60,
-        Math.ceil(longestLabelWidth + 40 / userCount)
+        Math.ceil(longestLabelWidth + 12)
     );
     const chartMinWidth = Math.max(data.length * minBarWidth, 400);
 
