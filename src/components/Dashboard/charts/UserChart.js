@@ -47,7 +47,7 @@ function UserChart({ data, totalExpenses, onUserClick }) {
     return (
         <ChartCard title="Expenses Per User">
             <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                <div style={{ minWidth: chartMinWidth }}>
+                <div style={{ width: chartMinWidth }}>
                     <ResponsiveContainer width="100%" height={250}>
                         <BarChart data={data} barCategoryGap={8} barSize={40} margin={{ top: 35, right: 20, left: 20, bottom: 5 }}>
                             <defs>

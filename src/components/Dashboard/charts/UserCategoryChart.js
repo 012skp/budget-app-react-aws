@@ -186,7 +186,7 @@ function UserCategoryChart({ data, categoryNames }) {
     return (
         <ChartCard title="Expense Per User Per Category">
             <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                <div style={{ minWidth: chartMinWidth }}>
+                <div style={{ width: chartMinWidth }}>
                     <ResponsiveContainer width="100%" height={250}>
                         <BarChart
                             data={chartData}
