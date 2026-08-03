@@ -78,7 +78,8 @@ function UserCategoryChart({ data, categoryNames }) {
                         />
                         <span>{item.cat}</span>
                         <span style={{ marginLeft: 'auto', fontWeight: 'bold' }}>
-                            {item.value.toFixed(2)}
+                            {item.value.toFixed(2)}{' '}
+                            ({total > 0 ? ((item.value / total) * 100).toFixed(1) : '0'}%)
                         </span>
                     </div>
                 ))}
