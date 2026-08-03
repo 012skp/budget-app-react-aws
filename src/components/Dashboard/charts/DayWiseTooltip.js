@@ -97,7 +97,7 @@ function DayWiseTooltip({ active, payload, categoryNames = [], totalExpenses }) 
                                         ({pct.toFixed(1)}%)
                                     </span>
                                 </span>
-                                <span style={{ marginLeft: 'auto', fontWeight: 'bold' }}>
+                                <span style={{ marginLeft: 'auto', fontWeight: 'normal' }}>
                                     ₹{num.format(item.value)}
                                 </span>
                             </div>
