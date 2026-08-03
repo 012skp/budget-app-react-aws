@@ -72,8 +72,8 @@ function DayWiseTooltip({ active, payload, categoryNames = [], totalExpenses }) 
                     alignItems: 'center'
                 }}
             >
-                <span>Total Expense</span>
-                <span>₹{num.format(totalTillDay)} ({totalPct.toFixed(1)}%)</span>
+                <span>Total Expense ({totalPct.toFixed(1)}%)</span>
+                <span>₹{num.format(totalTillDay)}</span>
             </p>
 
             {items.length > 0 && (
@@ -120,8 +120,8 @@ function DayWiseTooltip({ active, payload, categoryNames = [], totalExpenses }) 
                     alignItems: 'center'
                 }}
             >
-                <span>Today's Expense</span>
-                <span>₹{num.format(todayExpense)} ({todayPct.toFixed(1)}%)</span>
+                <span>Today's Expense ({todayPct.toFixed(1)}%)</span>
+                <span>₹{num.format(todayExpense)}</span>
             </p>
         </div>
     );
