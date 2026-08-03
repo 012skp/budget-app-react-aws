@@ -15,14 +15,32 @@ import {
 import ChartCard from './ChartCard';
 import ChartTooltip from './ChartTooltip';
 
+// Approximate or measure the pixel width of a piece of text at the chart's tick font.
+function getTextWidth(text, font = '12px sans-serif') {
+    if (typeof document === 'undefined' || !text) {
+        return text ? text.length * 7 : 0;
+    }
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (!context) {
+        return text.length * 7;
+    }
+    context.font = font;
+    return context.measureText(text).width;
+}
+
 function CategoryChart({ data, totalExpenses, onCategoryClick }) {
-    // Estimate width needed for the longest label so adjacent x-axis labels
-    // don't touch.  At our tick font size, each character is roughly 7px.
-    // We use a smaller width multiplier to keep the bars closer together.
-    const longestLabel = Math.max(
-        ...(data.map(item => (item.name ? item.name.length : 0)).concat([1]))
+    // Use the actual pixel width of the longest category name to determine
+    // the smallest chart width that won't cause x‑axis labels to overlap.
+    const categoryCount = data.length || 1;
+    const longestLabelWidth = Math.max(
+        ...(data.map(item => (item.name ? getTextWidth(item.name) : 0))),
+        0
     );
-    const minBarWidth = Math.max(60, longestLabel * 4 + 16);
+    const minBarWidth = Math.max(
+        60,
+        Math.ceil(longestLabelWidth + 40 / categoryCount)
+    );
     const chartMinWidth = Math.max(data.length * minBarWidth, 400);
 
     return (

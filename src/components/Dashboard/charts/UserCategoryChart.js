@@ -15,6 +15,20 @@ import {
 import ChartCard from './ChartCard';
 import { getCategoryColor } from '../../../utils/chartColors';
 
+// Approximate or measure the pixel width of a piece of text at the chart's tick font.
+function getTextWidth(text, font = '12px sans-serif') {
+    if (typeof document === 'undefined' || !text) {
+        return text ? text.length * 7 : 0;
+    }
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (!context) {
+        return text.length * 7;
+    }
+    context.font = font;
+    return context.measureText(text).width;
+}
+
 function UserCategoryChart({ data, categoryNames }) {
     const catIdxMap = new Map(categoryNames.map((cat, idx) => [cat, idx]));
 
@@ -34,12 +48,17 @@ function UserCategoryChart({ data, categoryNames }) {
         return newUser;
     });
 
-    // Calculate a minimum width that prevents the user name labels on the x-axis
-    // from touching when the chart is viewed on a narrow screen.
-    const longestLabel = Math.max(
-        ...(chartData.map(item => (item.name ? item.name.length : 0)).concat([1]))
+    // Use the actual pixel width of the longest user name to determine
+    // the smallest chart width that won't cause x‑axis labels to overlap.
+    const userCount = chartData.length || 1;
+    const longestLabelWidth = Math.max(
+        ...(chartData.map(item => (item.name ? getTextWidth(item.name) : 0))),
+        0
     );
-    const minBarWidth = Math.max(60, longestLabel * 7 + 16);
+    const minBarWidth = Math.max(
+        60,
+        Math.ceil(longestLabelWidth + 40 / userCount)
+    );
     const chartMinWidth = Math.max(chartData.length * minBarWidth, 400);
 
     const rankCount = categoryNames.length;

@@ -15,14 +15,32 @@ import {
 import ChartCard from './ChartCard';
 import ChartTooltip from './ChartTooltip';
 
+// Approximate or measure the pixel width of a piece of text at the chart's tick font.
+function getTextWidth(text, font = '12px sans-serif') {
+    if (typeof document === 'undefined' || !text) {
+        return text ? text.length * 7 : 0;
+    }
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (!context) {
+        return text.length * 7;
+    }
+    context.font = font;
+    return context.measureText(text).width;
+}
+
 function UserChart({ data, totalExpenses, onUserClick }) {
-    // Estimate width needed for the longest user name so adjacent x-axis labels
-    // don't touch.  At our tick font size, each character is roughly 7px;
-    // we add 16px of padding to guarantee at least a small whitespace gap.
-    const longestLabel = Math.max(
-        ...(data.map(item => (item.name ? item.name.length : 0)).concat([1]))
+    // Use the actual pixel width of the longest user name to determine
+    // the smallest chart width that won't cause x‑axis labels to overlap.
+    const userCount = data.length || 1;
+    const longestLabelWidth = Math.max(
+        ...(data.map(item => (item.name ? getTextWidth(item.name) : 0))),
+        0
     );
-    const minBarWidth = Math.max(60, longestLabel * 7 + 16);
+    const minBarWidth = Math.max(
+        60,
+        Math.ceil(longestLabelWidth + 40 / userCount)
+    );
     const chartMinWidth = Math.max(data.length * minBarWidth, 400);
 
     return (
