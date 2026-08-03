@@ -61,46 +61,61 @@ function UserCategoryChart({ data, categoryNames }) {
         const total = items.reduce((sum, item) => sum + item.value, 0);
 
         return (
-            <div style={{ background: '#fff', border: '1px solid #ddd', borderRadius: 8, padding: 10 }}>
-                <strong>{label}</strong>
-                {items.map(item => (
-                    <div
-                        key={item.cat}
-                        style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}
-                    >
-                        <span
-                            style={{
-                                width: 10,
-                                height: 10,
-                                borderRadius: '50%',
-                                background: getCategoryColor(item.cat, catIdxMap.get(item.cat) ?? 0)
-                            }}
-                        />
-                        <span>
-                            {item.cat}{' '}
-                            <span style={{ color: '#999', fontSize: 11 }}>
-                                ({total > 0 ? ((item.value / total) * 100).toFixed(1) : '0'}%)
-                            </span>
-                        </span>
-                        <span style={{ marginLeft: 'auto', fontWeight: 'normal' }}>
-                            {item.value.toFixed(2)}
-                        </span>
-                    </div>
-                ))}
+            <div
+                style={{
+                    backgroundColor: '#fff',
+                    padding: '10px 14px',
+                    border: '1px solid #edf0f7',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    fontSize: '13px'
+                }}
+            >
+                <p style={{ margin: 0, fontWeight: 600, color: '#333' }}>
+                    {label}
+                </p>
+
                 {items.length > 0 && (
-                    <div
-                        style={{
-                            marginTop: 8,
-                            borderTop: '1px solid #eee',
-                            paddingTop: 4,
-                            display: 'flex',
-                            justifyContent: 'space-between'
-                        }}
-                    >
-                        <span>Total</span>
-                        <strong>{total.toFixed(2)}</strong>
-                    </div>
+                    <>
+                        <hr style={{ margin: '8px 0', border: 'none', borderTop: '1px solid #edf0f7' }} />
+                        {items.map(item => (
+                            <div
+                                key={item.cat}
+                                style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}
+                            >
+                                <span
+                                    style={{
+                                        width: 10,
+                                        height: 10,
+                                        borderRadius: '50%',
+                                        background: getCategoryColor(item.cat, catIdxMap.get(item.cat) ?? 0)
+                                    }}
+                                />
+                                <span>
+                                    {item.cat}{' '}
+                                    <span style={{ color: '#999', fontSize: 11 }}>
+                                        ({total > 0 ? ((item.value / total) * 100).toFixed(1) : '0'}%)
+                                    </span>
+                                </span>
+                                <span style={{ marginLeft: 'auto', fontWeight: 'normal' }}>
+                                    {item.value.toFixed(2)}
+                                </span>
+                            </div>
+                        ))}
+                        <hr style={{ margin: '8px 0', border: 'none', borderTop: '1px solid #edf0f7' }} />
+                    </>
                 )}
+
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }}
+                >
+                    <span>Total</span>
+                    <span>{total.toFixed(2)}</span>
+                </div>
             </div>
         );
     };
