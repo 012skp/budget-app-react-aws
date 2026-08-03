@@ -34,6 +34,14 @@ function UserCategoryChart({ data, categoryNames }) {
         return newUser;
     });
 
+    // Calculate a minimum width that prevents the user name labels on the x-axis
+    // from touching when the chart is viewed on a narrow screen.
+    const longestLabel = Math.max(
+        ...(chartData.map(item => (item.name ? item.name.length : 0)).concat([1]))
+    );
+    const minBarWidth = Math.max(60, longestLabel * 7 + 16);
+    const chartMinWidth = Math.max(chartData.length * minBarWidth, 400);
+
     const rankCount = categoryNames.length;
     const ranks = Array.from({ length: rankCount }, (_, i) => i);
 
@@ -157,67 +165,71 @@ function UserCategoryChart({ data, categoryNames }) {
 
     return (
         <ChartCard title="Expense Per User Per Category">
-            <ResponsiveContainer width="100%" height={250}>
-                <BarChart
-                    data={chartData}
-                    barCategoryGap="15%"
-                    barSize={40}
-                    margin={{ top: 20, right: 20, left: 20, bottom: 5 }}
-                >
-                    <defs>
-                        {categoryNames.map((name, idx) => (
-                            <linearGradient
-                                key={`gradCat${idx}`}
-                                id={`gradCat${idx}`}
-                                x1="0"
-                                y1="0"
-                                x2="0"
-                                y2="1"
-                            >
-                                <stop offset="5%" stopColor={getCategoryColor(name, idx)} stopOpacity={0.95} />
-                                <stop offset="95%" stopColor={getCategoryColor(name, idx)} stopOpacity={0.6} />
-                            </linearGradient>
-                        ))}
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" vertical={false} />
-                    <XAxis
-                        dataKey="name"
-                        tick={{ fill: '#667', fontSize: 12 }}
-                        axisLine={false}
-                        tickLine={false}
-                    />
-                    <YAxis
-                        tick={{ fill: '#667', fontSize: 12 }}
-                        axisLine={false}
-                        tickLine={false}
-                    />
-                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)', radius: 8 }} />
-
-                    {ranks.map(rank => (
-                        <Bar
-                            key={`rank${rank}`}
-                            dataKey={`c${rank}`}
-                            stackId="user-category-stack"
-                            fill="url(#gradCat0)"
-                            maxBarSize={40}
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                <div style={{ minWidth: chartMinWidth }}>
+                    <ResponsiveContainer width="100%" height={250}>
+                        <BarChart
+                            data={chartData}
+                            barCategoryGap="15%"
+                            barSize={40}
+                            margin={{ top: 20, right: 20, left: 20, bottom: 5 }}
                         >
-                            {chartData.map((entry, entryIndex) => {
-                                const topRank = getTopRank(entry);
-                                const isTop = rank === topRank;
-                                const catName = entry[`c${rank}Cat`];
-                                const catIdx = catIdxMap.get(catName) ?? 0;
-                                return (
-                                    <Cell
-                                        key={`cell-${rank}-${entryIndex}`}
-                                        fill={`url(#gradCat${catIdx})`}
-                                        radius={isTop ? [8, 8, 0, 0] : [0, 0, 0, 0]}
-                                    />
-                                );
-                            })}
-                        </Bar>
-                    ))}
-                </BarChart>
-            </ResponsiveContainer>
+                            <defs>
+                                {categoryNames.map((name, idx) => (
+                                    <linearGradient
+                                        key={`gradCat${idx}`}
+                                        id={`gradCat${idx}`}
+                                        x1="0"
+                                        y1="0"
+                                        x2="0"
+                                        y2="1"
+                                    >
+                                        <stop offset="5%" stopColor={getCategoryColor(name, idx)} stopOpacity={0.95} />
+                                        <stop offset="95%" stopColor={getCategoryColor(name, idx)} stopOpacity={0.6} />
+                                    </linearGradient>
+                                ))}
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" vertical={false} />
+                            <XAxis
+                                dataKey="name"
+                                tick={{ fill: '#667', fontSize: 12 }}
+                                axisLine={false}
+                                tickLine={false}
+                            />
+                            <YAxis
+                                tick={{ fill: '#667', fontSize: 12 }}
+                                axisLine={false}
+                                tickLine={false}
+                            />
+                            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)', radius: 8 }} />
+
+                            {ranks.map(rank => (
+                                <Bar
+                                    key={`rank${rank}`}
+                                    dataKey={`c${rank}`}
+                                    stackId="user-category-stack"
+                                    fill="url(#gradCat0)"
+                                    maxBarSize={40}
+                                >
+                                    {chartData.map((entry, entryIndex) => {
+                                        const topRank = getTopRank(entry);
+                                        const isTop = rank === topRank;
+                                        const catName = entry[`c${rank}Cat`];
+                                        const catIdx = catIdxMap.get(catName) ?? 0;
+                                        return (
+                                            <Cell
+                                                key={`cell-${rank}-${entryIndex}`}
+                                                fill={`url(#gradCat${catIdx})`}
+                                                radius={isTop ? [8, 8, 0, 0] : [0, 0, 0, 0]}
+                                            />
+                                        );
+                                    })}
+                                </Bar>
+                            ))}
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
             <RenderLegend />
         </ChartCard>
     );
