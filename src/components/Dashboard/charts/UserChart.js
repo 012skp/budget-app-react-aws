@@ -34,7 +34,7 @@ function UserChart({ data, totalExpenses, onUserClick }) {
                             <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" vertical={false} />
                             <XAxis
                                 dataKey="name"
-                                tick={{ fill: '#667', fontSize: 10 }}
+                                tick={{ fill: '#667', fontSize: 12 }}
                                 axisLine={false}
                                 tickLine={false}
                                 interval={0}
