@@ -18,18 +18,20 @@ import ChartTooltip from './ChartTooltip';
 import { getCategoryColor } from '../../../utils/chartColors';
 
 function UserCategoryChart({ data, categoryNames }) {
-    // Sort categories by total expense (ascending) so that
-    // the category with the most expense is rendered LAST,
-    // which places it at the top of the stacked bar.
+    // Sort categories by total expense ASCENDING.
+    // Because Recharts stacks bars in the order they are rendered,
+    // the last rendered <Bar> appears at the top of the stack.
+    // Therefore the category with the highest total is placed LAST,
+    // which puts it at the very top.
     const sortedCategories = categoryNames.slice().sort((a, b) => {
         const totalA = data.reduce((sum, item) => sum + (Number(item[a]) || 0), 0);
         const totalB = data.reduce((sum, item) => sum + (Number(item[b]) || 0), 0);
         return totalA - totalB;
     });
 
-    // Rebuild the data array with keys in the same order as `sortedCategories`.
-    // This ensures Recharts uses the correct stack order even if the original
-    // data objects have their keys in a different order.
+    // Rebuild data objects so the category keys are present in the same order
+    // as the <Bar> components. This makes the stacking order explicit and
+    // avoids any ambiguity from the original data key order.
     const chartData = data.map(item => {
         const newItem = { name: item.name };
         sortedCategories.forEach(cat => {
@@ -38,9 +40,9 @@ function UserCategoryChart({ data, categoryNames }) {
         return newItem;
     });
 
-    // Determine which category is the visible top of the stack for each data point.
-    // Recharts stacks bars in the order that <Bar> components are rendered.
-    // The LAST category with a non-zero value is the actual top segment.
+    // For each data point, find which category is actually the top of the stack.
+    // In the rendering order, the top segment is the last category (highest index)
+    // that has a non-zero value.
     const getTopCategoryIndex = (item) => {
         for (let idx = sortedCategories.length - 1; idx >= 0; idx--) {
             const cat = sortedCategories[idx];
