@@ -45,6 +45,9 @@ function DayWiseTooltip({ active, payload, categoryNames = [], totalExpenses }) 
         maximumFractionDigits: 2
     });
 
+    const totalPct = denominator > 0 ? (totalTillDay / denominator) * 100 : 0;
+    const todayPct = denominator > 0 ? (todayExpense / denominator) * 100 : 0;
+
     return (
         <div
             style={{
@@ -70,7 +73,7 @@ function DayWiseTooltip({ active, payload, categoryNames = [], totalExpenses }) 
                 }}
             >
                 <span>Total Expense</span>
-                <span>₹{num.format(totalTillDay)}</span>
+                <span>₹{num.format(totalTillDay)} ({totalPct.toFixed(1)}%)</span>
             </p>
 
             {items.length > 0 && (
@@ -118,7 +121,7 @@ function DayWiseTooltip({ active, payload, categoryNames = [], totalExpenses }) 
                 }}
             >
                 <span>Today's Expense</span>
-                <span>₹{num.format(todayExpense)}</span>
+                <span>₹{num.format(todayExpense)} ({todayPct.toFixed(1)}%)</span>
             </p>
         </div>
     );
