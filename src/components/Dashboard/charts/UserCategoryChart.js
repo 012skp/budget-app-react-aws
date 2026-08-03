@@ -46,6 +46,11 @@ function UserCategoryChart({ data, categoryNames }) {
         return -1;
     };
 
+    const num = new Intl.NumberFormat('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+
     const CustomTooltip = ({ active, payload, label }) => {
         if (!active || !payload || !payload.length) return null;
 
@@ -98,7 +103,7 @@ function UserCategoryChart({ data, categoryNames }) {
                                     </span>
                                 </span>
                                 <span style={{ marginLeft: 'auto', fontWeight: 'normal' }}>
-                                    {item.value.toFixed(2)}
+                                    ₹{num.format(item.value)}
                                 </span>
                             </div>
                         ))}
@@ -114,7 +119,7 @@ function UserCategoryChart({ data, categoryNames }) {
                     }}
                 >
                     <span>Total</span>
-                    <span>{total.toFixed(2)}</span>
+                    <span>₹{num.format(total)}</span>
                 </div>
             </div>
         );
