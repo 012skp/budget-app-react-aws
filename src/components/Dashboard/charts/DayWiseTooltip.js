@@ -9,6 +9,10 @@ function DayWiseTooltip({ active, payload, categoryNames = [], totalExpenses }) 
 
     const totalTillDay = data.cumulative || 0;
 
+    // The denominator for the percentage is the total expense as of the last day,
+    // not the cumulative expense up to the current day.
+    const denominator = totalExpenses || totalTillDay;
+
     // Format date as e.g. "1 Aug 2026"
     const dateObj = new Date(data.date + 'T00:00:00');
     const dateLabel = dateObj.toLocaleDateString('en-GB', {
@@ -63,7 +67,7 @@ function DayWiseTooltip({ active, payload, categoryNames = [], totalExpenses }) 
                 <>
                     <hr style={{ margin: '8px 0', border: 'none', borderTop: '1px solid #edf0f7' }} />
                     {items.map(item => {
-                        const pct = totalTillDay > 0 ? (item.value / totalTillDay) * 100 : 0;
+                        const pct = denominator > 0 ? (item.value / denominator) * 100 : 0;
                         return (
                             <div
                                 key={item.cat}

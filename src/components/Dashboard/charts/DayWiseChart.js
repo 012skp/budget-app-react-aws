@@ -142,7 +142,7 @@ function DayWiseChart({ data, categoryNames, totalExpenses }) {
                         axisLine={false}
                         tickLine={false}
                     />
-                    <Tooltip content={<DayWiseTooltip categoryNames={categoryNames} />} cursor={{ fill: 'rgba(0,0,0,0.05)', radius: 8 }} />
+                    <Tooltip content={<DayWiseTooltip categoryNames={categoryNames} totalExpenses={totalExpenses} />} cursor={{ fill: 'rgba(0,0,0,0.05)', radius: 8 }} />
 
                     {ranks.map(rank => (
                         <Bar
