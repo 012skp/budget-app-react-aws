@@ -74,7 +74,7 @@ function DayWiseTooltip({ active, payload, categoryNames = [], totalExpenses }) 
             >
                 <span>
                     Total Expense{' '}
-                    <span style={{ color: '#999', fontSize: 11 }}>
+                    <span style={{ fontSize: 11 }}>
                         ({totalPct.toFixed(1)}%)
                     </span>
                 </span>
@@ -127,7 +127,7 @@ function DayWiseTooltip({ active, payload, categoryNames = [], totalExpenses }) 
             >
                 <span>
                     Today's Expense{' '}
-                    <span style={{ color: '#999', fontSize: 11 }}>
+                    <span style={{ fontSize: 11 }}>
                         ({todayPct.toFixed(1)}%)
                     </span>
                 </span>
