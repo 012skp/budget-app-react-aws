@@ -27,6 +27,17 @@ function UserCategoryChart({ data, categoryNames }) {
         return totalA - totalB;
     });
 
+    // Rebuild the data array with keys in the same order as `sortedCategories`.
+    // This ensures Recharts uses the correct stack order even if the original
+    // data objects have their keys in a different order.
+    const chartData = data.map(item => {
+        const newItem = { name: item.name };
+        sortedCategories.forEach(cat => {
+            newItem[cat] = item[cat];
+        });
+        return newItem;
+    });
+
     // Determine which category is the visible top of the stack for each data point.
     // Recharts stacks bars in the order that <Bar> components are rendered.
     // The last category in `sortedCategories` is normally at the top, but if its
@@ -44,7 +55,7 @@ function UserCategoryChart({ data, categoryNames }) {
         <ChartCard title="Expense Per User Per Category">
             <ResponsiveContainer width="100%" height={250}>
                 <BarChart
-                    data={data}
+                    data={chartData}
                     barCategoryGap="15%"
                     barSize={40}
                     margin={{ top: 20, right: 20, left: 20, bottom: 5 }}
@@ -94,7 +105,7 @@ function UserCategoryChart({ data, categoryNames }) {
                             fill={`url(#gradStack${idx})`}
                             maxBarSize={40}
                         >
-                            {data.map((entry, entryIndex) => {
+                            {chartData.map((entry, entryIndex) => {
                                 const topIdx = getTopCategoryIndex(entry);
                                 const isTop = idx === topIdx;
                                 return (
