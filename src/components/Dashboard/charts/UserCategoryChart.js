@@ -18,13 +18,13 @@ import ChartTooltip from './ChartTooltip';
 import { getCategoryColor } from '../../../utils/chartColors';
 
 function UserCategoryChart({ data, categoryNames }) {
-    // Sort categories by total expense (ascending) so that
-    // the category with the most expense is rendered LAST,
-    // which places it at the top of the stacked bar.
+    // Sort categories by total expense (descending) so that
+    // the category with the most expense is rendered FIRST,
+    // which puts it at the top of the stacked bar.
     const sortedCategories = categoryNames.slice().sort((a, b) => {
         const totalA = data.reduce((sum, item) => sum + (Number(item[a]) || 0), 0);
         const totalB = data.reduce((sum, item) => sum + (Number(item[b]) || 0), 0);
-        return totalA - totalB;
+        return totalB - totalA;
     });
 
     // Rebuild the data array with keys in the same order as `sortedCategories`.
@@ -39,16 +39,13 @@ function UserCategoryChart({ data, categoryNames }) {
     });
 
     // Determine which category is the visible top of the stack for each data point.
-    // Recharts stacks bars in the order that <Bar> components are rendered.
-    // The last category in `sortedCategories` is normally at the top, but if its
-    // value is 0 for a given user, the actual top segment will be a different
-    // category.  We need to round only that actual top segment.
+    // With descending order, the first category with a non-zero value is the top.
     const getTopCategoryIndex = (item) => {
-        let topIdx = -1;
-        sortedCategories.forEach((cat, idx) => {
-            if (Number(item[cat]) > 0) topIdx = idx;
-        });
-        return topIdx;
+        for (let idx = 0; idx < sortedCategories.length; idx++) {
+            const cat = sortedCategories[idx];
+            if (Number(item[cat]) > 0) return idx;
+        }
+        return -1;
     };
 
     return (
