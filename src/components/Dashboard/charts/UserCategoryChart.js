@@ -7,49 +7,127 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    Legend,
     defs,
     linearGradient,
     stop,
     Cell
 } from 'recharts';
 import ChartCard from './ChartCard';
-import ChartTooltip from './ChartTooltip';
 import { getCategoryColor } from '../../../utils/chartColors';
 
 function UserCategoryChart({ data, categoryNames }) {
-    // Sort categories by total expense ASCENDING.
-    // Because Recharts stacks bars in the order they are rendered,
-    // the last rendered <Bar> appears at the top of the stack.
-    // Therefore the category with the highest total is placed LAST,
-    // which puts it at the very top.
-    const sortedCategories = categoryNames.slice().sort((a, b) => {
-        const totalA = data.reduce((sum, item) => sum + (Number(item[a]) || 0), 0);
-        const totalB = data.reduce((sum, item) => sum + (Number(item[b]) || 0), 0);
-        return totalA - totalB;
-    });
+    const catIdxMap = new Map(categoryNames.map((cat, idx) => [cat, idx]));
 
-    // Rebuild data objects so the category keys are present in the same order
-    // as the <Bar> components. This makes the stacking order explicit and
-    // avoids any ambiguity from the original data key order.
-    const chartData = data.map(item => {
-        const newItem = { name: item.name };
-        sortedCategories.forEach(cat => {
-            newItem[cat] = item[cat];
+    // Build a chart data set where each user has rank keys (c0, c1, ...).
+    // Within each user, categories are sorted ascending (smallest first, largest last),
+    // so the last rendered bar (highest rank) appears at the top of the stack.
+    const chartData = data.map(user => {
+        const entries = categoryNames
+            .map(cat => ({ cat, value: Number(user[cat]) || 0 }))
+            .sort((a, b) => a.value - b.value);
+
+        const newUser = { name: user.name };
+        entries.forEach((entry, rank) => {
+            newUser[`c${rank}`] = entry.value;
+            newUser[`c${rank}Cat`] = entry.cat;
         });
-        return newItem;
+        return newUser;
     });
 
-    // For each data point, find which category is actually the top of the stack.
-    // In the rendering order, the top segment is the last category (highest index)
-    // that has a non-zero value.
-    const getTopCategoryIndex = (item) => {
-        for (let idx = sortedCategories.length - 1; idx >= 0; idx--) {
-            const cat = sortedCategories[idx];
-            if (Number(item[cat]) > 0) return idx;
+    const rankCount = categoryNames.length;
+    const ranks = Array.from({ length: rankCount }, (_, i) => i);
+
+    // For a given data point, find the highest rank that actually has a non‑zero value.
+    // Because data is sorted ascending, this is the top‑most visible segment.
+    const getTopRank = (item) => {
+        for (let i = rankCount - 1; i >= 0; i--) {
+            if (Number(item[`c${i}`]) > 0) return i;
         }
         return -1;
     };
+
+    const CustomTooltip = ({ active, payload, label }) => {
+        if (!active || !payload || !payload.length) return null;
+
+        const items = payload
+            .map(entry => ({
+                rank: Number(entry.dataKey.replace('c', '')),
+                cat: entry.payload[`${entry.dataKey}Cat`],
+                value: Number(entry.value) || 0
+            }))
+            .filter(item => item.value > 0)
+            .sort((a, b) => b.rank - a.rank); // top first, bottom last
+
+        const total = items.reduce((sum, item) => sum + item.value, 0);
+
+        return (
+            <div style={{ background: '#fff', border: '1px solid #ddd', borderRadius: 8, padding: 10 }}>
+                <strong>{label}</strong>
+                {items.map(item => (
+                    <div
+                        key={item.cat}
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}
+                    >
+                        <span
+                            style={{
+                                width: 10,
+                                height: 10,
+                                borderRadius: '50%',
+                                background: getCategoryColor(item.cat, catIdxMap.get(item.cat) ?? 0)
+                            }}
+                        />
+                        <span>{item.cat}</span>
+                        <span style={{ marginLeft: 'auto', fontWeight: 'bold' }}>
+                            {item.value.toFixed(2)}
+                        </span>
+                    </div>
+                ))}
+                {items.length > 0 && (
+                    <div
+                        style={{
+                            marginTop: 8,
+                            borderTop: '1px solid #eee',
+                            paddingTop: 4,
+                            display: 'flex',
+                            justifyContent: 'space-between'
+                        }}
+                    >
+                        <span>Total</span>
+                        <strong>{total.toFixed(2)}</strong>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    const RenderLegend = () => (
+        <div
+            style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 8,
+                justifyContent: 'center',
+                marginTop: 8
+            }}
+        >
+            {categoryNames.map((cat, idx) => (
+                <span
+                    key={cat}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#667' }}
+                >
+                    <span
+                        style={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: '50%',
+                            background: getCategoryColor(cat, idx)
+                        }}
+                    />
+                    {cat}
+                </span>
+            ))}
+        </div>
+    );
 
     return (
         <ChartCard title="Expense Per User Per Category">
@@ -61,10 +139,10 @@ function UserCategoryChart({ data, categoryNames }) {
                     margin={{ top: 20, right: 20, left: 20, bottom: 5 }}
                 >
                     <defs>
-                        {sortedCategories.map((name, idx) => (
+                        {categoryNames.map((name, idx) => (
                             <linearGradient
-                                key={`gradStack${idx}`}
-                                id={`gradStack${idx}`}
+                                key={`gradCat${idx}`}
+                                id={`gradCat${idx}`}
                                 x1="0"
                                 y1="0"
                                 x2="0"
@@ -87,30 +165,25 @@ function UserCategoryChart({ data, categoryNames }) {
                         axisLine={false}
                         tickLine={false}
                     />
-                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)', radius: 8 }} />
-                    <Legend
-                        iconType="circle"
-                        wrapperStyle={{
-                            fontSize: 12,
-                            paddingTop: 10
-                        }}
-                    />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)', radius: 8 }} />
 
-                    {sortedCategories.map((name, idx) => (
+                    {ranks.map(rank => (
                         <Bar
-                            key={name}
-                            name={name}
-                            dataKey={name}
+                            key={`rank${rank}`}
+                            dataKey={`c${rank}`}
                             stackId="user-category-stack"
-                            fill={`url(#gradStack${idx})`}
+                            fill="url(#gradCat0)"
                             maxBarSize={40}
                         >
                             {chartData.map((entry, entryIndex) => {
-                                const topIdx = getTopCategoryIndex(entry);
-                                const isTop = idx === topIdx;
+                                const topRank = getTopRank(entry);
+                                const isTop = rank === topRank;
+                                const catName = entry[`c${rank}Cat`];
+                                const catIdx = catIdxMap.get(catName) ?? 0;
                                 return (
                                     <Cell
-                                        key={`cell-${idx}-${entryIndex}`}
+                                        key={`cell-${rank}-${entryIndex}`}
+                                        fill={`url(#gradCat${catIdx})`}
                                         radius={isTop ? [8, 8, 0, 0] : [0, 0, 0, 0]}
                                     />
                                 );
@@ -119,6 +192,7 @@ function UserCategoryChart({ data, categoryNames }) {
                     ))}
                 </BarChart>
             </ResponsiveContainer>
+            <RenderLegend />
         </ChartCard>
     );
 }
