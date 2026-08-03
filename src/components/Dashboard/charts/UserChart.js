@@ -16,15 +16,21 @@ import ChartCard from './ChartCard';
 import ChartTooltip from './ChartTooltip';
 
 function UserChart({ data, totalExpenses, onUserClick }) {
-    // Each bar gets roughly 80px of width; enforce a minimum so very few users still render nicely
-    const chartMinWidth = Math.max(data.length * 80, 400);
+    // Estimate width needed for the longest user name so adjacent x-axis labels
+    // don't touch.  At our tick font size, each character is roughly 7px;
+    // we add 16px of padding to guarantee at least a small whitespace gap.
+    const longestLabel = Math.max(
+        ...(data.map(item => (item.name ? item.name.length : 0)).concat([1]))
+    );
+    const minBarWidth = Math.max(60, longestLabel * 7 + 16);
+    const chartMinWidth = Math.max(data.length * minBarWidth, 400);
 
     return (
         <ChartCard title="Expenses Per User">
             <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                 <div style={{ minWidth: chartMinWidth }}>
                     <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={data} barCategoryGap="15%" margin={{ top: 35, right: 20, left: 20, bottom: 5 }}>
+                        <BarChart data={data} barCategoryGap="15%" barSize={40} margin={{ top: 35, right: 20, left: 20, bottom: 5 }}>
                             <defs>
                                 <linearGradient id="gradUser" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#4F73DF" stopOpacity={0.9} />
