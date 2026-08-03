@@ -42,10 +42,7 @@ function CategoryChart({ data, totalExpenses, onCategoryClick }) {
         60,
         Math.ceil(longestLabelWidth + 8)
     );
-    const chartMinWidth = Math.max(
-        leftMargin + rightMargin + data.length * categoryMinWidth,
-        400
-    );
+    const chartMinWidth = leftMargin + rightMargin + data.length * categoryMinWidth;
 
     return (
         <ChartCard title="Expenses Per Category">

@@ -60,10 +60,7 @@ function UserCategoryChart({ data, categoryNames }) {
         60,
         Math.ceil(longestLabelWidth + 16)
     );
-    const chartMinWidth = Math.max(
-        leftMargin + rightMargin + chartData.length * categoryMinWidth,
-        400
-    );
+    const chartMinWidth = leftMargin + rightMargin + chartData.length * categoryMinWidth;
 
     const rankCount = categoryNames.length;
     const ranks = Array.from({ length: rankCount }, (_, i) => i);
