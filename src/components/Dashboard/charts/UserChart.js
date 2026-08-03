@@ -36,11 +36,16 @@ function UserChart({ data, totalExpenses, onUserClick }) {
         ...(data.map(item => (item.name ? getTextWidth(item.name) : 0))),
         0
     );
-    const minBarWidth = Math.max(
+    const leftMargin = 20;
+    const rightMargin = 20;
+    const categoryMinWidth = Math.max(
         60,
-        Math.ceil(longestLabelWidth + 12)
+        Math.ceil(longestLabelWidth + 8)
     );
-    const chartMinWidth = Math.max(data.length * minBarWidth, 400);
+    const chartMinWidth = Math.max(
+        leftMargin + rightMargin + data.length * categoryMinWidth,
+        400
+    );
 
     return (
         <ChartCard title="Expenses Per User">

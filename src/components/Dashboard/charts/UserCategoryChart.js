@@ -54,11 +54,16 @@ function UserCategoryChart({ data, categoryNames }) {
         ...(chartData.map(item => (item.name ? getTextWidth(item.name) : 0))),
         0
     );
-    const minBarWidth = Math.max(
+    const leftMargin = 20;
+    const rightMargin = 20;
+    const categoryMinWidth = Math.max(
         60,
-        Math.ceil(longestLabelWidth + 12)
+        Math.ceil(longestLabelWidth + 8)
     );
-    const chartMinWidth = Math.max(chartData.length * minBarWidth, 400);
+    const chartMinWidth = Math.max(
+        leftMargin + rightMargin + chartData.length * categoryMinWidth,
+        400
+    );
 
     const rankCount = categoryNames.length;
     const ranks = Array.from({ length: rankCount }, (_, i) => i);
