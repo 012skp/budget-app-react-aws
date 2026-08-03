@@ -76,10 +76,14 @@ function UserCategoryChart({ data, categoryNames }) {
                                 background: getCategoryColor(item.cat, catIdxMap.get(item.cat) ?? 0)
                             }}
                         />
-                        <span>{item.cat}</span>
+                        <span>
+                            {item.cat}{' '}
+                            <span style={{ color: '#999', fontSize: 11 }}>
+                                ({total > 0 ? ((item.value / total) * 100).toFixed(1) : '0'}%)
+                            </span>
+                        </span>
                         <span style={{ marginLeft: 'auto', fontWeight: 'bold' }}>
-                            {item.value.toFixed(2)}{' '}
-                            ({total > 0 ? ((item.value / total) * 100).toFixed(1) : '0'}%)
+                            {item.value.toFixed(2)}
                         </span>
                     </div>
                 ))}
