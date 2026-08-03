@@ -135,7 +135,6 @@ function DayWiseChart({ data, categoryNames, totalExpenses }) {
                         axisLine={false}
                         tickLine={false}
                         minTickGap={20}
-                        label={{ value: 'Date', position: 'insideBottom', offset: -5 }}
                     />
                     <YAxis
                         tick={{ fill: '#667', fontSize: 12 }}
