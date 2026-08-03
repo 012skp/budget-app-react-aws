@@ -170,7 +170,7 @@ function UserCategoryChart({ data, categoryNames }) {
                     <ResponsiveContainer width="100%" height={250}>
                         <BarChart
                             data={chartData}
-                            barCategoryGap="15%"
+                            barCategoryGap={8}
                             barSize={40}
                             margin={{ top: 20, right: 20, left: 20, bottom: 5 }}
                         >

@@ -30,7 +30,7 @@ function UserChart({ data, totalExpenses, onUserClick }) {
             <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                 <div style={{ minWidth: chartMinWidth }}>
                     <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={data} barCategoryGap="15%" barSize={40} margin={{ top: 35, right: 20, left: 20, bottom: 5 }}>
+                        <BarChart data={data} barCategoryGap={8} barSize={40} margin={{ top: 35, right: 20, left: 20, bottom: 5 }}>
                             <defs>
                                 <linearGradient id="gradUser" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#4F73DF" stopOpacity={0.9} />
