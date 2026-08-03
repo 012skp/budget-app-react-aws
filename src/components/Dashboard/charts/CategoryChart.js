@@ -17,12 +17,12 @@ import ChartTooltip from './ChartTooltip';
 
 function CategoryChart({ data, totalExpenses, onCategoryClick }) {
     // Estimate width needed for the longest label so adjacent x-axis labels
-    // don't touch.  At our tick font size, each character is roughly 7px;
-    // we add 16px of padding to guarantee at least a small whitespace gap.
+    // don't touch.  At our tick font size, each character is roughly 7px.
+    // We use a smaller width multiplier to keep the bars closer together.
     const longestLabel = Math.max(
         ...(data.map(item => (item.name ? item.name.length : 0)).concat([1]))
     );
-    const minBarWidth = Math.max(60, longestLabel * 7 + 16);
+    const minBarWidth = Math.max(60, longestLabel * 4 + 16);
     const chartMinWidth = Math.max(data.length * minBarWidth, 400);
 
     return (
