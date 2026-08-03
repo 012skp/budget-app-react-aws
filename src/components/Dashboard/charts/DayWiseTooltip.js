@@ -59,8 +59,18 @@ function DayWiseTooltip({ active, payload, categoryNames = [], totalExpenses }) 
             <p style={{ margin: 0, fontWeight: 600, color: '#333' }}>
                 {dateLabel}
             </p>
-            <p style={{ margin: '6px 0 0', color: '#4F73DF', fontWeight: 600 }}>
-                Total Expense: ₹{num.format(totalTillDay)}
+            <p
+                style={{
+                    margin: '6px 0 0',
+                    color: '#4F73DF',
+                    fontWeight: 600,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}
+            >
+                <span>Total Expense</span>
+                <span>₹{num.format(totalTillDay)}</span>
             </p>
 
             {items.length > 0 && (
@@ -97,8 +107,18 @@ function DayWiseTooltip({ active, payload, categoryNames = [], totalExpenses }) 
                 </>
             )}
 
-            <p style={{ margin: '6px 0 0', color: '#333', fontWeight: 600 }}>
-                Today's Expense: ₹{num.format(todayExpense)}
+            <p
+                style={{
+                    margin: '6px 0 0',
+                    color: '#333',
+                    fontWeight: 600,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}
+            >
+                <span>Today's Expense</span>
+                <span>₹{num.format(todayExpense)}</span>
             </p>
         </div>
     );
