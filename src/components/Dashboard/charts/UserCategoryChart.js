@@ -10,13 +10,27 @@ import {
     Legend,
     defs,
     linearGradient,
-    stop
+    stop,
+    Cell
 } from 'recharts';
 import ChartCard from './ChartCard';
 import ChartTooltip from './ChartTooltip';
 import { getCategoryColor } from '../../../utils/chartColors';
 
 function UserCategoryChart({ data, categoryNames }) {
+    // Determine which category is the visible top of the stack for each data point.
+    // Recharts stacks bars in the order that <Bar> components are rendered.
+    // The last category in `categoryNames` is normally at the top, but if its
+    // value is 0 for a given user, the actual top segment will be a different
+    // category.  We need to round only that actual top segment.
+    const getTopCategoryIndex = (item) => {
+        let topIdx = -1;
+        categoryNames.forEach((cat, idx) => {
+            if (Number(item[cat]) > 0) topIdx = idx;
+        });
+        return topIdx;
+    };
+
     return (
         <ChartCard title="Expense Per User Per Category">
             <ResponsiveContainer width="100%" height={250}>
@@ -69,9 +83,19 @@ function UserCategoryChart({ data, categoryNames }) {
                             dataKey={name}
                             stackId="user-category-stack"
                             fill={`url(#gradStack${idx})`}
-                            radius={idx === categoryNames.length - 1 ? [8, 8, 0, 0] : [0, 0, 0, 0]}
                             maxBarSize={40}
-                        />
+                        >
+                            {data.map((entry, entryIndex) => {
+                                const topIdx = getTopCategoryIndex(entry);
+                                const isTop = idx === topIdx;
+                                return (
+                                    <Cell
+                                        key={`cell-${idx}-${entryIndex}`}
+                                        radius={isTop ? [8, 8, 0, 0] : [0, 0, 0, 0]}
+                                    />
+                                );
+                            })}
+                        </Bar>
                     ))}
                 </BarChart>
             </ResponsiveContainer>
