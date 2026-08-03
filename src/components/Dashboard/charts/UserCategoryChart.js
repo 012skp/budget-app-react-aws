@@ -58,7 +58,7 @@ function UserCategoryChart({ data, categoryNames }) {
     const rightMargin = 20;
     const categoryMinWidth = Math.max(
         60,
-        Math.ceil(longestLabelWidth + 8)
+        Math.ceil(longestLabelWidth + 16)
     );
     const chartMinWidth = Math.max(
         leftMargin + rightMargin + chartData.length * categoryMinWidth,
@@ -218,6 +218,7 @@ function UserCategoryChart({ data, categoryNames }) {
                                 tick={{ fill: '#667', fontSize: 12 }}
                                 axisLine={false}
                                 tickLine={false}
+                                interval={0}
                             />
                             <YAxis
                                 tick={{ fill: '#667', fontSize: 12 }}

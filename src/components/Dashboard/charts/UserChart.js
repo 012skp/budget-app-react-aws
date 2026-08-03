@@ -40,7 +40,7 @@ function UserChart({ data, totalExpenses, onUserClick }) {
     const rightMargin = 20;
     const categoryMinWidth = Math.max(
         60,
-        Math.ceil(longestLabelWidth + 8)
+        Math.ceil(longestLabelWidth + 16)
     );
     const chartMinWidth = Math.max(
         leftMargin + rightMargin + data.length * categoryMinWidth,
