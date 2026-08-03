@@ -18,13 +18,13 @@ import ChartTooltip from './ChartTooltip';
 import { getCategoryColor } from '../../../utils/chartColors';
 
 function UserCategoryChart({ data, categoryNames }) {
-    // Sort categories by total expense (descending) so that
-    // the category with the most expense is rendered FIRST,
-    // which puts it at the top of the stacked bar.
+    // Sort categories by total expense (ascending) so that
+    // the category with the most expense is rendered LAST,
+    // which places it at the top of the stacked bar.
     const sortedCategories = categoryNames.slice().sort((a, b) => {
         const totalA = data.reduce((sum, item) => sum + (Number(item[a]) || 0), 0);
         const totalB = data.reduce((sum, item) => sum + (Number(item[b]) || 0), 0);
-        return totalB - totalA;
+        return totalA - totalB;
     });
 
     // Rebuild the data array with keys in the same order as `sortedCategories`.
@@ -39,9 +39,10 @@ function UserCategoryChart({ data, categoryNames }) {
     });
 
     // Determine which category is the visible top of the stack for each data point.
-    // With descending order, the first category with a non-zero value is the top.
+    // Recharts stacks bars in the order that <Bar> components are rendered.
+    // The LAST category with a non-zero value is the actual top segment.
     const getTopCategoryIndex = (item) => {
-        for (let idx = 0; idx < sortedCategories.length; idx++) {
+        for (let idx = sortedCategories.length - 1; idx >= 0; idx--) {
             const cat = sortedCategories[idx];
             if (Number(item[cat]) > 0) return idx;
         }
