@@ -63,7 +63,7 @@ function DayWiseTooltip({ active, payload, categoryNames = [], totalExpenses }) 
                 <>
                     <hr style={{ margin: '8px 0', border: 'none', borderTop: '1px solid #edf0f7' }} />
                     {items.map(item => {
-                        const pct = todayExpense > 0 ? (item.value / todayExpense) * 100 : 0;
+                        const pct = totalTillDay > 0 ? (item.value / totalTillDay) * 100 : 0;
                         return (
                             <div
                                 key={item.cat}
