@@ -38,7 +38,7 @@ function CategoryChart({ data, totalExpenses, onCategoryClick }) {
     );
     const minBarWidth = Math.max(
         60,
-        Math.ceil(longestLabelWidth + 24)
+        Math.ceil(longestLabelWidth + 12)
     );
     const chartMinWidth = Math.max(data.length * minBarWidth, 400);
 
