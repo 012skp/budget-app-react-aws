@@ -115,10 +115,11 @@ function UserCategoryChart({ data, categoryNames }) {
                     style={{
                         display: 'flex',
                         justifyContent: 'space-between',
-                        alignItems: 'center'
+                        alignItems: 'center',
+                        fontWeight: 600
                     }}
                 >
-                    <span>Total</span>
+                    <span>Total Expense</span>
                     <span>₹{num.format(total)}</span>
                 </div>
             </div>
