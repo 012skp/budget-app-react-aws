@@ -113,6 +113,7 @@ function DayWiseChart({ data, userData = [], categoryNames, userNames = [], tota
 
         const dayTotal = items.reduce((sum, item) => sum + item.value, 0);
         const cumulative = Number(dataPoint.cumulative) || 0;
+        const totalExp = totalExpenses || 0;
 
         return (
             <div
@@ -134,12 +135,18 @@ function DayWiseChart({ data, userData = [], categoryNames, userNames = [], tota
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        fontWeight: 600,
+                        color: '#667',
+                        fontSize: 12,
                         marginTop: 8
                     }}
                 >
                     <span>Total Expense</span>
-                    <span>₹{num.format(cumulative)}</span>
+                    <span>
+                        ₹{num.format(cumulative)}{' '}
+                        <span style={{ color: '#999' }}>
+                            ({totalExp > 0 ? ((cumulative / totalExp) * 100).toFixed(1) : '0'}%)
+                        </span>
+                    </span>
                 </div>
 
                 {items.length > 0 && (
@@ -161,7 +168,7 @@ function DayWiseChart({ data, userData = [], categoryNames, userNames = [], tota
                                 <span>
                                     {item.name}{' '}
                                     <span style={{ color: '#999', fontSize: 11 }}>
-                                        ({totalExpenses > 0 ? ((item.value / totalExpenses) * 100).toFixed(1) : '0'}%)
+                                        ({totalExp > 0 ? ((item.value / totalExp) * 100).toFixed(1) : '0'}%)
                                     </span>
                                 </span>
                                 <span style={{ marginLeft: 'auto', fontWeight: 'normal' }}>
@@ -178,12 +185,17 @@ function DayWiseChart({ data, userData = [], categoryNames, userNames = [], tota
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        color: '#667',
-                        fontSize: 12
+                        fontWeight: 600,
+                        marginTop: 2
                     }}
                 >
                     <span>Today's Expense</span>
-                    <span>₹{num.format(dayTotal)}</span>
+                    <span>
+                        ₹{num.format(dayTotal)}{' '}
+                        <span style={{ color: '#999', fontWeight: 'normal' }}>
+                            ({totalExp > 0 ? ((dayTotal / totalExp) * 100).toFixed(1) : '0'}%)
+                        </span>
+                    </span>
                 </div>
             </div>
         );
