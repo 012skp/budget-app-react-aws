@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     ResponsiveContainer,
     BarChart,
@@ -30,26 +30,76 @@ function getTextWidth(text, font = '12px sans-serif') {
 }
 
 function UserCategoryChart({ data, categoryNames }) {
-    const catIdxMap = new Map(categoryNames.map((cat, idx) => [cat, idx]));
+    // Toggle between viewing by user (stacks = categories) and by category (stacks = users)
+    const [orientation, setOrientation] = useState('user'); // 'user' | 'category'
 
-    // Build a chart data set where each user has rank keys (c0, c1, ...).
-    // Within each user, categories are sorted ascending (smallest first, largest last),
-    // so the last rendered bar (highest rank) appears at the top of the stack.
-    const chartData = data.map(user => {
-        const entries = categoryNames
-            .map(cat => ({ cat, value: Number(user[cat]) || 0 }))
-            .sort((a, b) => a.value - b.value);
-
-        const newUser = { name: user.name };
-        entries.forEach((entry, rank) => {
-            newUser[`c${rank}`] = entry.value;
-            newUser[`c${rank}Cat`] = entry.cat;
+    // All user names that appear in the data (order determined by the data array)
+    const userNames = useMemo(() => {
+        const names = [];
+        const seen = new Set();
+        data.forEach(item => {
+            if (!seen.has(item.name)) {
+                seen.add(item.name);
+                names.push(item.name);
+            }
         });
-        return newUser;
-    });
+        return names;
+    }, [data]);
 
-    // Use the actual pixel width of the longest user name to determine
-    // the smallest chart width that won't cause x‑axis labels to overlap.
+    // Map category -> user -> total, used when orientation === 'category'
+    const userCategoryAmountMap = useMemo(() => {
+        const map = {};
+        data.forEach(user => {
+            const userName = user.name;
+            categoryNames.forEach(cat => {
+                const val = Number(user[cat]) || 0;
+                if (!map[cat]) map[cat] = {};
+                map[cat][userName] = (map[cat][userName] || 0) + val;
+            });
+        });
+        return map;
+    }, [data, categoryNames]);
+
+    const catIdxMap = useMemo(() => new Map(categoryNames.map((cat, idx) => [cat, idx])), [categoryNames]);
+    const userIdxMap = useMemo(() => new Map(userNames.map((name, idx) => [name, idx])), [userNames]);
+
+    // Determine which labels appear as stack segments
+    const stackLabels = orientation === 'user' ? categoryNames : userNames;
+    const rankCount = stackLabels.length;
+    const ranks = Array.from({ length: rankCount }, (_, i) => i);
+
+    // Build chart data according to the current orientation
+    const chartData = useMemo(() => {
+        if (orientation === 'user') {
+            return data.map(user => {
+                const entries = categoryNames
+                    .map(cat => ({ cat, value: Number(user[cat]) || 0 }))
+                    .sort((a, b) => a.value - b.value);
+
+                const newUser = { name: user.name };
+                entries.forEach((entry, rank) => {
+                    newUser[`c${rank}`] = entry.value;
+                    newUser[`c${rank}Cat`] = entry.cat;
+                });
+                return newUser;
+            });
+        } else {
+            return categoryNames.map(cat => {
+                const entries = userNames
+                    .map(userName => ({ user: userName, value: Number(userCategoryAmountMap[cat]?.[userName]) || 0 }))
+                    .sort((a, b) => a.value - b.value);
+
+                const newCategory = { name: cat };
+                entries.forEach((entry, rank) => {
+                    newCategory[`c${rank}`] = entry.value;
+                    newCategory[`c${rank}User`] = entry.user;
+                });
+                return newCategory;
+            });
+        }
+    }, [data, categoryNames, userNames, orientation, userCategoryAmountMap]);
+
+    // Use the actual pixel width of the longest label to determine chart min width.
     const longestLabelWidth = Math.max(
         ...(chartData.map(item => (item.name ? getTextWidth(item.name) : 0))),
         0
@@ -62,11 +112,7 @@ function UserCategoryChart({ data, categoryNames }) {
     );
     const chartMinWidth = leftMargin + rightMargin + chartData.length * categoryMinWidth;
 
-    const rankCount = categoryNames.length;
-    const ranks = Array.from({ length: rankCount }, (_, i) => i);
-
-    // For a given data point, find the highest rank that actually has a non‑zero value.
-    // Because data is sorted ascending, this is the top‑most visible segment.
+    // For a given data point, find the highest rank that actually has a non-zero value.
     const getTopRank = (item) => {
         for (let i = rankCount - 1; i >= 0; i--) {
             if (Number(item[`c${i}`]) > 0) return i;
@@ -82,12 +128,24 @@ function UserCategoryChart({ data, categoryNames }) {
     const CustomTooltip = ({ active, payload, label }) => {
         if (!active || !payload || !payload.length) return null;
 
+        const isUserOrientation = orientation === 'user';
+        const labelSuffix = isUserOrientation ? 'Cat' : 'User';
+
         const items = payload
-            .map(entry => ({
-                rank: Number(entry.dataKey.replace('c', '')),
-                cat: entry.payload[`${entry.dataKey}Cat`],
-                value: Number(entry.value) || 0
-            }))
+            .map(entry => {
+                const rank = Number(entry.dataKey.replace('c', ''));
+                const displayName = entry.payload[`${entry.dataKey}${labelSuffix}`];
+                const value = Number(entry.value) || 0;
+                const idx = isUserOrientation
+                    ? (catIdxMap.get(displayName) ?? 0)
+                    : (userIdxMap.get(displayName) ?? 0);
+                return {
+                    displayName,
+                    value,
+                    rank,
+                    color: getCategoryColor(displayName, idx)
+                };
+            })
             .filter(item => item.value > 0)
             .sort((a, b) => b.rank - a.rank); // top first, bottom last
 
@@ -113,7 +171,7 @@ function UserCategoryChart({ data, categoryNames }) {
                         <hr style={{ margin: '8px 0', border: 'none', borderTop: '1px solid #edf0f7' }} />
                         {items.map(item => (
                             <div
-                                key={item.cat}
+                                key={item.displayName}
                                 style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}
                             >
                                 <span
@@ -121,11 +179,11 @@ function UserCategoryChart({ data, categoryNames }) {
                                         width: 10,
                                         height: 10,
                                         borderRadius: '50%',
-                                        background: getCategoryColor(item.cat, catIdxMap.get(item.cat) ?? 0)
+                                        background: item.color
                                     }}
                                 />
                                 <span>
-                                    {item.cat}{' '}
+                                    {item.displayName}{' '}
                                     <span style={{ color: '#999', fontSize: 11 }}>
                                         ({total > 0 ? ((item.value / total) * 100).toFixed(1) : '0'}%)
                                     </span>
@@ -164,9 +222,9 @@ function UserCategoryChart({ data, categoryNames }) {
                 marginTop: 8
             }}
         >
-            {categoryNames.map((cat, idx) => (
+            {stackLabels.map((label, idx) => (
                 <span
-                    key={cat}
+                    key={label}
                     style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#667' }}
                 >
                     <span
@@ -174,17 +232,55 @@ function UserCategoryChart({ data, categoryNames }) {
                             width: 10,
                             height: 10,
                             borderRadius: '50%',
-                            background: getCategoryColor(cat, idx)
+                            background: getCategoryColor(label, idx)
                         }}
                     />
-                    {cat}
+                    {label}
                 </span>
             ))}
         </div>
     );
 
+    const handleToggle = () => {
+        setOrientation(prev => prev === 'user' ? 'category' : 'user');
+    };
+
+    if (!data || !categoryNames || data.length === 0) {
+        return (
+            <ChartCard title="Expense Distribution">
+                <p style={{ color: '#667', fontSize: 14 }}>No data available</p>
+            </ChartCard>
+        );
+    }
+
     return (
-        <ChartCard title="Expense Per User Per Category">
+        <ChartCard
+            title={
+                orientation === 'user'
+                    ? 'Expense Per User Per Category'
+                    : 'Expense Per Category Per User'
+            }
+        >
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+                <button
+                    type="button"
+                    onClick={handleToggle}
+                    style={{
+                        padding: '4px 12px',
+                        border: '1px solid #d0d5e0',
+                        borderRadius: '20px',
+                        backgroundColor: '#fff',
+                        cursor: 'pointer',
+                        fontSize: 12,
+                        color: '#3A4A6B'
+                    }}
+                >
+                    {orientation === 'user'
+                        ? 'Switch to Category view'
+                        : 'Switch to User view'}
+                </button>
+            </div>
+
             <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                 <div style={{ width: chartMinWidth }}>
                     <ResponsiveContainer width="100%" height={250}>
@@ -195,17 +291,17 @@ function UserCategoryChart({ data, categoryNames }) {
                             margin={{ top: 20, right: 20, left: 20, bottom: 5 }}
                         >
                             <defs>
-                                {categoryNames.map((name, idx) => (
+                                {stackLabels.map((label, idx) => (
                                     <linearGradient
-                                        key={`gradCat${idx}`}
-                                        id={`gradCat${idx}`}
+                                        key={`gradStack${idx}`}
+                                        id={`gradStack${idx}`}
                                         x1="0"
                                         y1="0"
                                         x2="0"
                                         y2="1"
                                     >
-                                        <stop offset="5%" stopColor={getCategoryColor(name, idx)} stopOpacity={0.95} />
-                                        <stop offset="95%" stopColor={getCategoryColor(name, idx)} stopOpacity={0.6} />
+                                        <stop offset="5%" stopColor={getCategoryColor(label, idx)} stopOpacity={0.95} />
+                                        <stop offset="95%" stopColor={getCategoryColor(label, idx)} stopOpacity={0.6} />
                                     </linearGradient>
                                 ))}
                             </defs>
@@ -229,18 +325,22 @@ function UserCategoryChart({ data, categoryNames }) {
                                     key={`rank${rank}`}
                                     dataKey={`c${rank}`}
                                     stackId="user-category-stack"
-                                    fill="url(#gradCat0)"
+                                    fill="url(#gradStack0)"
                                     maxBarSize={40}
                                 >
                                     {chartData.map((entry, entryIndex) => {
                                         const topRank = getTopRank(entry);
                                         const isTop = rank === topRank;
-                                        const catName = entry[`c${rank}Cat`];
-                                        const catIdx = catIdxMap.get(catName) ?? 0;
+                                        const stackName = orientation === 'user'
+                                            ? entry[`c${rank}Cat`]
+                                            : entry[`c${rank}User`];
+                                        const stackIdx = orientation === 'user'
+                                            ? (catIdxMap.get(stackName) ?? 0)
+                                            : (userIdxMap.get(stackName) ?? 0);
                                         return (
                                             <Cell
                                                 key={`cell-${rank}-${entryIndex}`}
-                                                fill={`url(#gradCat${catIdx})`}
+                                                fill={`url(#gradStack${stackIdx})`}
                                                 radius={isTop ? [8, 8, 0, 0] : [0, 0, 0, 0]}
                                             />
                                         );
