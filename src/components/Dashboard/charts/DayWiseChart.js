@@ -114,6 +114,8 @@ function DayWiseChart({ data, userData = [], categoryNames, userNames = [], tota
         const dayTotal = items.reduce((sum, item) => sum + item.value, 0);
         const cumulative = Number(dataPoint.cumulative) || 0;
         const totalExp = totalExpenses || 0;
+        const cumulativePct = totalExp > 0 ? ((cumulative / totalExp) * 100).toFixed(1) : '0';
+        const dayTotalPct = totalExp > 0 ? ((dayTotal / totalExp) * 100).toFixed(1) : '0';
 
         return (
             <div
@@ -140,13 +142,8 @@ function DayWiseChart({ data, userData = [], categoryNames, userNames = [], tota
                         marginTop: 8
                     }}
                 >
-                    <span>Total Expense</span>
-                    <span>
-                        ₹{num.format(cumulative)}{' '}
-                        <span style={{ color: '#999' }}>
-                            ({totalExp > 0 ? ((cumulative / totalExp) * 100).toFixed(1) : '0'}%)
-                        </span>
-                    </span>
+                    <span>Total Expense ({cumulativePct}%)</span>
+                    <span>₹{num.format(cumulative)}</span>
                 </div>
 
                 {items.length > 0 && (
@@ -189,13 +186,8 @@ function DayWiseChart({ data, userData = [], categoryNames, userNames = [], tota
                         marginTop: 2
                     }}
                 >
-                    <span>Today's Expense</span>
-                    <span>
-                        ₹{num.format(dayTotal)}{' '}
-                        <span style={{ color: '#999', fontWeight: 'normal' }}>
-                            ({totalExp > 0 ? ((dayTotal / totalExp) * 100).toFixed(1) : '0'}%)
-                        </span>
-                    </span>
+                    <span>Today's Expense ({dayTotalPct}%)</span>
+                    <span>₹{num.format(dayTotal)}</span>
                 </div>
             </div>
         );
