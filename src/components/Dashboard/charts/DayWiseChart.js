@@ -139,10 +139,11 @@ function DayWiseChart({ data, userData = [], categoryNames, userNames = [], tota
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         fontWeight: 600,
-                        marginTop: 8
+                        marginTop: 8,
+                        color: '#4F73DF' // same blue as the cumulative line
                     }}
                 >
-                    <span>Total Expense{' '}<span style={{ color: '#999', fontSize: 11 }}>({cumulativePct}%)</span></span>
+                    <span>Total Expense{' '}<span style={{ fontSize: 11 }}>({cumulativePct}%)</span></span>
                     <span>₹{num.format(cumulative)}</span>
                 </div>
 
