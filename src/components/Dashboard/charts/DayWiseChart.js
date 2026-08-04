@@ -236,13 +236,7 @@ function DayWiseChart({ data, userData = [], categoryNames, userNames = [], tota
     }
 
     return (
-        <ChartCard
-            title={
-                seriesType === 'category'
-                    ? 'Day Wise Category Expenses'
-                    : 'Day Wise User Expenses'
-            }
-        >
+        <ChartCard title="Day Wise Breakdown">
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
                 <button
                     type="button"

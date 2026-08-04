@@ -266,13 +266,7 @@ function UserCategoryChart({ data, categoryNames }) {
     }
 
     return (
-        <ChartCard
-            title={
-                orientation === 'user'
-                    ? 'Expense Per User Per Category'
-                    : 'Expense Per Category Per User'
-            }
-        >
+        <ChartCard title="Expense Breakdown">
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
                 <button
                     type="button"
