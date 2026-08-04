@@ -129,6 +129,19 @@ function DayWiseChart({ data, userData = [], categoryNames, userNames = [], tota
                     {label}
                 </p>
 
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontWeight: 600,
+                        marginTop: 8
+                    }}
+                >
+                    <span>Total Expense</span>
+                    <span>₹{num.format(cumulative)}</span>
+                </div>
+
                 {items.length > 0 && (
                     <>
                         <hr style={{ margin: '8px 0', border: 'none', borderTop: '1px solid #edf0f7' }} />
@@ -165,24 +178,12 @@ function DayWiseChart({ data, userData = [], categoryNames, userNames = [], tota
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        fontWeight: 600
-                    }}
-                >
-                    <span>Day Total</span>
-                    <span>₹{num.format(dayTotal)}</span>
-                </div>
-                <div
-                    style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
                         color: '#667',
-                        fontSize: 12,
-                        marginTop: 2
+                        fontSize: 12
                     }}
                 >
-                    <span>Cumulative</span>
-                    <span>₹{num.format(cumulative)}</span>
+                    <span>Today's Expense</span>
+                    <span>₹{num.format(dayTotal)}</span>
                 </div>
             </div>
         );
