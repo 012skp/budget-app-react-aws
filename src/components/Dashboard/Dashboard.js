@@ -105,6 +105,9 @@ function Dashboard({
         return Object.keys(totals).sort((a, b) => totals[a] - totals[b]);
     }, [filteredExpenses, categories]);
 
+    // User names, used by the day-wise chart when it is switched to per‑user view
+    const userNames = useMemo(() => users.map(u => u.Name), [users]);
+
     // Recent expenses: latest 10 within selected date range
     const recentExpensesData = useMemo(() => {
         return [...filteredExpenses]
@@ -169,6 +172,53 @@ function Dashboard({
 
         return days;
     }, [filteredExpenses, startDate, endDate, categories]);
+
+    // Daily cumulative + per‑user volume data (used when the day‑wise chart is toggled to user view)
+    const dailyUserData = useMemo(() => {
+        if (!startDate || !endDate) return [];
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const days = [];
+        const current = new Date(start);
+        const dayToIndex = {};
+
+        while (current <= end) {
+            const dateStr = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')}`;
+            const dayObj = {
+                day: current.getDate(),
+                date: dateStr,
+                cumulative: 0
+            };
+            userNames.forEach(name => {
+                dayObj[name] = 0;
+            });
+            dayToIndex[dateStr] = dayObj;
+            days.push(dayObj);
+            current.setDate(current.getDate() + 1);
+        }
+
+        const dayTotalMap = {};
+        filteredExpenses.forEach(exp => {
+            if (!exp.Timestamp) return;
+            const dateStr = exp.Timestamp.slice(0, 10);
+            const amount = parseFloat(exp.Amount) || 0;
+            dayTotalMap[dateStr] = (dayTotalMap[dateStr] || 0) + amount;
+            const dayObj = dayToIndex[dateStr];
+            if (dayObj) {
+                const userName = getUserName(exp.UserId, users);
+                dayObj[userName] = (dayObj[userName] || 0) + amount;
+            }
+        });
+
+        let cumulative = 0;
+        days.forEach(dayObj => {
+            cumulative += (dayTotalMap[dayObj.date] || 0);
+            dayObj.cumulative = cumulative;
+        });
+
+        return days;
+    }, [filteredExpenses, startDate, endDate, users, userNames]);
 
     const handleRefresh = async () => {
         if (onRefresh) await onRefresh();
@@ -236,7 +286,13 @@ function Dashboard({
                 <CategoryChart data={categoryBreakdown} totalExpenses={totalExpenses} onCategoryClick={handleCategoryClick} />
                 <UserChart data={userBreakdown} totalExpenses={totalExpenses} onUserClick={handleUserClick} />
                 <UserCategoryChart data={userCategoryBreakdown} categoryNames={categoryNames} />
-                <DayWiseChart data={dailyExpenseData} categoryNames={categoryNames} totalExpenses={totalExpenses} />
+                <DayWiseChart
+                    data={dailyExpenseData}
+                    userData={dailyUserData}
+                    categoryNames={categoryNames}
+                    userNames={userNames}
+                    totalExpenses={totalExpenses}
+                />
             </div>
 
             <div className="recent-expenses">
