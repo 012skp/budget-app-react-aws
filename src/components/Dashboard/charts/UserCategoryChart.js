@@ -60,6 +60,18 @@ function UserCategoryChart({ data, categoryNames }) {
         return map;
     }, [data, categoryNames]);
 
+    // When viewing per category, sort categories by total descending so the largest is on the left
+    const sortedCategoryNames = useMemo(() => {
+        if (orientation !== 'category') return categoryNames;
+        return categoryNames
+            .map(cat => ({
+                cat,
+                total: data.reduce((sum, user) => sum + (Number(user[cat]) || 0), 0)
+            }))
+            .sort((a, b) => b.total - a.total)
+            .map(item => item.cat);
+    }, [data, categoryNames, orientation]);
+
     const catIdxMap = useMemo(() => new Map(categoryNames.map((cat, idx) => [cat, idx])), [categoryNames]);
     const userIdxMap = useMemo(() => new Map(userNames.map((name, idx) => [name, idx])), [userNames]);
 
@@ -84,7 +96,7 @@ function UserCategoryChart({ data, categoryNames }) {
                 return newUser;
             });
         } else {
-            return categoryNames.map(cat => {
+            return sortedCategoryNames.map(cat => {
                 const entries = userNames
                     .map(userName => ({ user: userName, value: Number(userCategoryAmountMap[cat]?.[userName]) || 0 }))
                     .sort((a, b) => a.value - b.value);
@@ -97,7 +109,7 @@ function UserCategoryChart({ data, categoryNames }) {
                 return newCategory;
             });
         }
-    }, [data, categoryNames, userNames, orientation, userCategoryAmountMap]);
+    }, [data, categoryNames, userNames, orientation, userCategoryAmountMap, sortedCategoryNames]);
 
     // Use the actual pixel width of the longest label to determine chart min width.
     const longestLabelWidth = Math.max(
