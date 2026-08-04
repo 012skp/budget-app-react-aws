@@ -142,7 +142,7 @@ function DayWiseChart({ data, userData = [], categoryNames, userNames = [], tota
                         marginTop: 8
                     }}
                 >
-                    <span>Total Expense ({cumulativePct}%)</span>
+                    <span>Total Expense{' '}<span style={{ color: '#999', fontSize: 11 }}>({cumulativePct}%)</span></span>
                     <span>₹{num.format(cumulative)}</span>
                 </div>
 
@@ -186,7 +186,7 @@ function DayWiseChart({ data, userData = [], categoryNames, userNames = [], tota
                         marginTop: 2
                     }}
                 >
-                    <span>Today's Expense ({dayTotalPct}%)</span>
+                    <span>Today's Expense{' '}<span style={{ color: '#999', fontSize: 11 }}>({dayTotalPct}%)</span></span>
                     <span>₹{num.format(dayTotal)}</span>
                 </div>
             </div>
