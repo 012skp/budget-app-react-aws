@@ -138,8 +138,7 @@ function DayWiseChart({ data, userData = [], categoryNames, userNames = [], tota
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        color: '#667',
-                        fontSize: 12,
+                        fontWeight: 600,
                         marginTop: 8
                     }}
                 >
