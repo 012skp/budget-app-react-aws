@@ -282,7 +282,7 @@ function Dashboard({
                 />
             </div>
 
-            <div className="dashboard-charts" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+            <div className="dashboard-charts" style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'center' }}>
                 <CategoryChart data={categoryBreakdown} totalExpenses={totalExpenses} onCategoryClick={handleCategoryClick} />
                 <UserChart data={userBreakdown} totalExpenses={totalExpenses} onUserClick={handleUserClick} />
                 <UserCategoryChart data={userCategoryBreakdown} categoryNames={categoryNames} />
