@@ -50,14 +50,15 @@ export const expenseAPI = {
         Description: description // ✅ Changed from description to Description
     }),
 
-    // Update expense - FIXED: Use table column names
-    updateExpense: (expenseId, userId, categoryId, amount, description) => callAPI({
+    // Update expense - FIXED: Use table column names, now includes Timestamp
+    updateExpense: (expenseId, userId, categoryId, amount, description, timestamp) => callAPI({
         action: "update_expense",
         ExpenseId: expenseId,   // ✅ Changed from expenseId to ExpenseId
         UserId: userId,         // ✅ Changed from userId to UserId
         CategoryId: categoryId, // ✅ Changed from categoryId to CategoryId
         Amount: amount,         // ✅ Changed from amount to Amount
-        Description: description // ✅ Changed from description to Description
+        Description: description, // ✅ Changed from description to Description
+        Timestamp: timestamp    // ✅ New: pass the selected timestamp to the Lambda
     }),
 
     // Delete expense - FIXED: Use table column names

@@ -2,6 +2,22 @@ import {getCategoryName, getUserName} from "../../utils/dataHelpers";
 import { expenseAPI } from '../../services/api';
 import React, { useState, useMemo } from 'react';
 
+// Convert "2024-05-21 10:30:00" or "2024-05-21T10:30:00" into a value usable by <input type="datetime-local">
+const toDateTimeLocal = (value) => {
+    if (!value) return '';
+    const str = String(value).replace(' ', 'T');
+    // Return only the first 16 characters (YYYY-MM-DDTHH:MM)
+    return str.length >= 16 ? str.slice(0, 16) : str;
+};
+
+// Convert "YYYY-MM-DDTHH:MM" (from datetime-local input) into "YYYY-MM-DD HH:MM:SS" for MySQL
+const toMySqlTimestamp = (value) => {
+    if (!value) return '';
+    const replaced = value.replace('T', ' ');
+    // If time part only has HH:MM, append seconds
+    return replaced.length === 16 ? `${replaced}:00` : replaced;
+};
+
 function ExpenseList({filteredExpenses, users, categories, dateRange, loading, onRefresh, initialFilter}) {
     // Modal state
     const [selectedExpense, setSelectedExpense] = useState(null);
@@ -9,7 +25,8 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
         UserId: '',
         CategoryId: '',
         Amount: '',
-        Description: ''
+        Description: '',
+        Timestamp: ''
     });
 
     // Filter / sort / pagination state
@@ -111,7 +128,8 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
             UserId: expense.UserId,
             CategoryId: expense.CategoryId,
             Amount: expense.Amount,
-            Description: expense.Description
+            Description: expense.Description,
+            Timestamp: toDateTimeLocal(expense.Timestamp)
         });
     };
 
@@ -123,7 +141,8 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
                 editForm.UserId,
                 editForm.CategoryId,
                 editForm.Amount,
-                editForm.Description
+                editForm.Description,
+                toMySqlTimestamp(editForm.Timestamp)
             );
             alert('Expense updated successfully');
             setSelectedExpense(null);
@@ -261,7 +280,15 @@ function ExpenseList({filteredExpenses, users, categories, dateRange, loading, o
                 <div className="modal-overlay" onClick={() => setSelectedExpense(null)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()}>
                         <h3>Edit Expense #{selectedExpense.ExpenseId}</h3>
-                        <p><strong>Date:</strong> {selectedExpense.Timestamp}</p>
+
+                        <label>Date &amp; Time</label>
+                        <input
+                            type="datetime-local"
+                            value={editForm.Timestamp}
+                            onChange={(e) =>
+                                setEditForm({...editForm, Timestamp: e.target.value})
+                            }
+                        />
 
                         <label>Description</label>
                         <input

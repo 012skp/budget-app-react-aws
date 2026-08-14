@@ -379,9 +379,10 @@ def lambda_handler(event, context):
                         }
 
                     elif action == 'update_expense':
+                        timestamp_value = data.get('Timestamp') or datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                         cursor.execute(
-                            "UPDATE Expenses SET UserId = %s, CategoryId = %s, Amount = %s, Description = %s WHERE ExpenseId = %s",
-                            (data.get('UserId'), data.get('CategoryId'), data.get('Amount'), data.get('Description'), data.get('ExpenseId'))
+                            "UPDATE Expenses SET UserId = %s, CategoryId = %s, Amount = %s, Description = %s, Timestamp = %s WHERE ExpenseId = %s",
+                            (data.get('UserId'), data.get('CategoryId'), data.get('Amount'), data.get('Description'), timestamp_value, data.get('ExpenseId'))
                         )
                         connection.commit()
                         infra.log(f"Updated expense ID {data.get('ExpenseId')}")
