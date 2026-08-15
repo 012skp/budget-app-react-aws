@@ -121,6 +121,15 @@ body {
   color: white;
 }
 
+/* Wrap backup and API status side by side */
+.header-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 .stop-infra-btn {
   background-color: #dc3545;
   color: white;

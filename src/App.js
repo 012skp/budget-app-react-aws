@@ -188,29 +188,30 @@ function App() {
                 <div className="calendar-bar">
                     <CalendarPicker dateRange={dateRange} onDateChange={handleDateChange} />
                 </div>
-                <div className="backup-status">
-                    {lastBackup ? (
-                        (() => {
-                            const stale = isBackupOlderThanADay(lastBackup);
-                            const corrupt = backupCorrupt;
-                            const warning = stale || corrupt;
-                            const statusClass = warning ? 'backup-stale' : 'backup-ok';
-                            const label = corrupt
-                                ? `⚠️ Last backup may be corrupted: ${formatBackupTime(lastBackup)}`
-                                : `🗄️ Last backup: ${formatBackupTime(lastBackup)}`;
-                            return (
-                                <span className={`status-indicator ${statusClass}`}>
-                                    {label}
-                                </span>
-                            );
-                        })()
-                    ) : (
-                        <span className="status-indicator">
-                            🗄️ Last backup: {backupLoadError ? 'Unavailable' : 'Loading...'}
-                        </span>
-                    )}
-                </div>
-                <div className="api-status">
+                <div className="header-status">
+                    <div className="backup-status">
+                        {lastBackup ? (
+                            (() => {
+                                const stale = isBackupOlderThanADay(lastBackup);
+                                const corrupt = backupCorrupt;
+                                const warning = stale || corrupt;
+                                const statusClass = warning ? 'backup-stale' : 'backup-ok';
+                                const label = corrupt
+                                    ? `⚠️ Last backup may be corrupted: ${formatBackupTime(lastBackup)}`
+                                    : `🗄️ Last backup: ${formatBackupTime(lastBackup)}`;
+                                return (
+                                    <span className={`status-indicator ${statusClass}`}>
+                                        {label}
+                                    </span>
+                                );
+                            })()
+                        ) : (
+                            <span className="status-indicator">
+                                🗄️ Last backup: {backupLoadError ? 'Unavailable' : 'Loading...'}
+                            </span>
+                        )}
+                    </div>
+                    <div className="api-status">
 
     <span className={`status-indicator ${apiStatus}`}>
         {apiStatus === 'connecting' && '🔄 Connecting to AWS...'}
@@ -219,19 +220,20 @@ function App() {
     </span>
 
 
-                    {apiStatus === 'connected' && (
-                        <button
-                            className="stop-infra-btn"
-                            onClick={handleStopInfra}
-                            disabled={stoppingInfra}
-                        >
-                            {stoppingInfra
-                                ? '⏳ Stopping...'
-                                : '🛑 Stop AWS Infra'}
-                        </button>
-                    )}
-                    
+                        {apiStatus === 'connected' && (
+                            <button
+                                className="stop-infra-btn"
+                                onClick={handleStopInfra}
+                                disabled={stoppingInfra}
+                            >
+                                {stoppingInfra
+                                    ? '⏳ Stopping...'
+                                    : '🛑 Stop AWS Infra'}
+                            </button>
+                        )}
+                        
 
+                    </div>
                 </div>
             </header>
 
