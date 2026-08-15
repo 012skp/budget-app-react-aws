@@ -184,6 +184,24 @@ def normalize_end_date(end_date):
         return end_date
     return end_date + ' 23:59:59'
 
+def wait_for_ssm_command(ssm_client, command_id, instance_id, timeout=300):
+    """Poll SSM command status until it finishes or timeout."""
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            response = ssm_client.get_command_invocation(
+                CommandId=command_id,
+                InstanceId=instance_id
+            )
+            status = response['Status']
+            if status in ['Success', 'Failed', 'Cancelled', 'TimedOut']:
+                return status
+        except ssm_client.exceptions.InvocationDoesNotExist:
+            # Command invocation may not be visible immediately
+            pass
+        time.sleep(5)
+    return 'TimedOut'
+
 def lambda_handler(event, context):
     # Configuration (stored in Parameter Store)
     INSTANCE_ID = get_parameter('/budgetApp/ec2/instanceId')
@@ -355,48 +373,86 @@ def lambda_handler(event, context):
 
             infra.log_access(action)
 
-            # Handle database backup via SSM - no direct DB connection needed
+            # Handle database backup via SSM - only the actual backup command is sent here.
+            # All validation and cleanup logic is performed with S3 APIs after the command completes.
             if action == 'db_backup':
                 root_password = get_parameter('/budgetApp/ec2/mariadb/password/root')
                 # Escape any single quote characters so the password stays literal inside single quotes
                 escaped_root_password = root_password.replace("'", "'\\''")
-                backup_command = f"""
-set -e
-mysqldump -u root -p'{escaped_root_password}' --all-databases --routines --triggers --events --single-transaction --quick | gzip | aws s3 cp - s3://{backup_bucket}/{backup_file_prefix}$(date +"%Y-%m-%d_%H-%M-%S").sql.gz
+                backup_command = (
+                    "mysqldump -u root -p'" + escaped_root_password + "' --all-databases --routines --triggers "
+                    "--events --single-transaction --quick | gzip | "
+                    "aws s3 cp - s3://" + backup_bucket + "/" + backup_file_prefix +
+                    "$(date +\"%Y-%m-%d_%H-%M-%S\").sql.gz"
+                )
 
-# Cleanup logic – check size and remove old backups if size is within tolerance
-s3_url="s3://{backup_bucket}/{backup_file_prefix}"
-files=$(aws s3 ls "$s3_url" --recursive | sort -k1,2r | grep '\\.sql\\.gz$' || true)
-new_line=$(echo "$files" | head -n 1)
-prev_line=$(echo "$files" | sed -n '2p')
-new_size=$(echo "$new_line" | awk '{{print $3}}')
-prev_size=$(echo "$prev_line" | awk '{{print $3}}')
-
-if [ -n "$new_size" ] && [ -n "$prev_size" ] && [ "$prev_size" -gt 0 ]; then
-  # Check if new backup size is within 5% of previous backup size
-  if awk -v a="$new_size" -v b="$prev_size" 'BEGIN {{ if (b <= 0) exit 1; d = (a>b)?a-b:b-a; exit (d*100/b <= 5.0) ? 0 : 1 }}'; then
-    # Delete all but the newest 5 backups
-    echo "$files" | tail -n +6 | awk '{{print $4}}' | while read key; do
-      if [ -n "$key" ]; then
-        aws s3 rm "s3://{backup_bucket}/$key" >/dev/null
-      fi
-    done
-  fi
-fi
-"""
-                ssm.send_command(
+                send_response = ssm.send_command(
                     InstanceIds=[INSTANCE_ID],
                     DocumentName='AWS-RunShellScript',
                     Parameters={'commands': [backup_command]}
                 )
-                infra.log("Database backup command sent successfully")
+                command_id = send_response['Command']['CommandId']
+                infra.log(f"Database backup command sent, command_id={command_id}")
+
+                # Wait for the backup command to finish before checking/cleaning S3
+                command_status = wait_for_ssm_command(ssm, command_id, INSTANCE_ID)
+                if command_status != 'Success':
+                    return {
+                        'statusCode': 500,
+                        'headers': cors_headers,
+                        'body': json.dumps({
+                            'error': f'Database backup command failed, status={command_status}',
+                            'commandId': command_id
+                        })
+                    }
+
+                # Now list all backup files in S3 and perform size validation + cleanup
+                s3_client = boto3.client('s3')
+                paginator = s3_client.get_paginator('list_objects_v2')
+                pages = paginator.paginate(Bucket=backup_bucket, Prefix=backup_file_prefix)
+
+                backups = []
+                for page in pages:
+                    for obj in page.get('Contents', []):
+                        key = obj['Key']
+                        if not key.endswith('.sql.gz'):
+                            continue
+                        backups.append({
+                            'Key': key,
+                            'LastModified': obj['LastModified'],
+                            'Size': obj['Size']
+                        })
+
+                # Sort newest first
+                backups.sort(key=lambda x: x['LastModified'], reverse=True)
+
+                deleted_count = 0
+                # Only perform validation if we have at least two backups
+                if len(backups) >= 2:
+                    new_size = backups[0]['Size']
+                    prev_size = backups[1]['Size']
+
+                    # Keep backups only if the new size is within 5% of the previous size
+                    if prev_size > 0 and abs(new_size - prev_size) / prev_size * 100 <= 5.0:
+                        # Delete all except the newest 5
+                        for old in backups[5:]:
+                            s3_client.delete_object(Bucket=backup_bucket, Key=old['Key'])
+                            deleted_count += 1
+                        infra.log(f"Deleted {deleted_count} old backup(s) after size validation")
+                    else:
+                        infra.log("Backup size differs by more than 5%, skipping cleanup")
+                else:
+                    infra.log("Not enough backups to perform size validation, skipping cleanup")
+
                 return {
                     'statusCode': 200,
                     'headers': cors_headers,
                     'body': json.dumps({
                         'message': 'Database backup initiated successfully',
                         'auto_started': was_auto_started,
-                        'instanceId': INSTANCE_ID
+                        'instanceId': INSTANCE_ID,
+                        'commandId': command_id,
+                        'deleted_old_backups': deleted_count
                     })
                 }
 
