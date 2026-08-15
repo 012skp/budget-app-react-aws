@@ -360,12 +360,30 @@ def lambda_handler(event, context):
                 root_password = get_parameter('/budgetApp/ec2/mariadb/password/root')
                 # Escape any single quote characters so the password stays literal inside single quotes
                 escaped_root_password = root_password.replace("'", "'\\''")
-                backup_command = (
-                    "mysqldump -u root -p'" + escaped_root_password + "' --all-databases --routines --triggers "
-                    "--events --single-transaction --quick | gzip | "
-                    "aws s3 cp - s3://" + backup_bucket + "/" + backup_file_prefix +
-                    "$(date +\"%Y-%m-%d_%H-%M-%S\").sql.gz"
-                )
+                backup_command = f"""
+set -e
+mysqldump -u root -p'{escaped_root_password}' --all-databases --routines --triggers --events --single-transaction --quick | gzip | aws s3 cp - s3://{backup_bucket}/{backup_file_prefix}$(date +"%Y-%m-%d_%H-%M-%S").sql.gz
+
+# Cleanup logic – check size and remove old backups if size is within tolerance
+s3_url="s3://{backup_bucket}/{backup_file_prefix}"
+files=$(aws s3 ls "$s3_url" --recursive | sort -k1,2r | grep '\\.sql\\.gz$' || true)
+new_line=$(echo "$files" | head -n 1)
+prev_line=$(echo "$files" | sed -n '2p')
+new_size=$(echo "$new_line" | awk '{{print $3}}')
+prev_size=$(echo "$prev_line" | awk '{{print $3}}')
+
+if [ -n "$new_size" ] && [ -n "$prev_size" ] && [ "$prev_size" -gt 0 ]; then
+  # Check if new backup size is within 5% of previous backup size
+  if awk -v a="$new_size" -v b="$prev_size" 'BEGIN {{ if (b <= 0) exit 1; d = (a>b)?a-b:b-a; exit (d*100/b <= 5.0) ? 0 : 1 }}'; then
+    # Delete all but the newest 5 backups
+    echo "$files" | tail -n +6 | awk '{{print $4}}' | while read key; do
+      if [ -n "$key" ]; then
+        aws s3 rm "s3://{backup_bucket}/$key" >/dev/null
+      fi
+    done
+  fi
+fi
+"""
                 ssm.send_command(
                     InstanceIds=[INSTANCE_ID],
                     DocumentName='AWS-RunShellScript',
