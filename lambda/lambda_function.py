@@ -7,6 +7,8 @@ from datetime import datetime, timezone
 
 ssm = boto3.client('ssm')
 
+BACKUP_SIZE_THRESHOLD_PERCENT = 5.0
+
 class InfrastructureManager:
     def __init__(self, instance_id, db_config, access_log_file=None):
         self.instance_id = instance_id
@@ -184,6 +186,51 @@ def normalize_end_date(end_date):
         return end_date
     return end_date + ' 23:59:59'
 
+def list_backups(s3_client, bucket, prefix):
+    """
+    List all backup files in S3 matching the given prefix and .sql.gz suffix.
+    Returns a list of dicts sorted by LastModified descending.
+    Each dict contains: Key, LastModified, Size
+    """
+    paginator = s3_client.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
+    backups = []
+    for page in pages:
+        for obj in page.get('Contents', []):
+            key = obj['Key']
+            if not key.endswith('.sql.gz'):
+                continue
+            # Ensure we only consider files under the expected prefix
+            if not key.startswith(prefix):
+                continue
+            backups.append({
+                'Key': key,
+                'LastModified': obj['LastModified'],
+                'Size': obj['Size']
+            })
+    backups.sort(key=lambda x: x['LastModified'], reverse=True)
+    return backups
+
+def format_last_backup_time(dt):
+    """Convert a datetime to UTC ISO-8601 format with 'Z' suffix."""
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    else:
+        dt = dt.astimezone(timezone.utc)
+    return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+def is_size_within_threshold(new_size, prev_size):
+    """Return True if two backup sizes are within BACKUP_SIZE_THRESHOLD_PERCENT."""
+    if prev_size <= 0:
+        return False
+    return abs(new_size - prev_size) / prev_size * 100 <= BACKUP_SIZE_THRESHOLD_PERCENT
+
+def get_backup_status(backups):
+    """Return 'healthy' or 'corrupted' based on the size of the newest backup."""
+    if len(backups) < 2:
+        return 'healthy'
+    return 'healthy' if is_size_within_threshold(backups[0]['Size'], backups[1]['Size']) else 'corrupted'
+
 def wait_for_ssm_command(ssm_client, command_id, instance_id, timeout=300):
     """Poll SSM command status until it finishes or timeout."""
     start = time.time()
@@ -299,19 +346,7 @@ def lambda_handler(event, context):
         elif action == 'get_last_backup':
             s3 = boto3.client('s3')
             try:
-                paginator = s3.get_paginator('list_objects_v2')
-                pages = paginator.paginate(Bucket=backup_bucket, Prefix=backup_file_prefix)
-                backups = []
-                for page in pages:
-                    for obj in page.get('Contents', []):
-                        key = obj['Key']
-                        if not key.startswith(backup_file_prefix) or not key.endswith('.sql.gz'):
-                            continue
-                        backups.append({
-                            'Key': key,
-                            'LastModified': obj['LastModified'],
-                            'Size': obj['Size']
-                        })
+                backups = list_backups(s3, backup_bucket, backup_file_prefix)
 
                 if not backups:
                     return {
@@ -323,25 +358,9 @@ def lambda_handler(event, context):
                         })
                     }
 
-                # Sort newest first
-                backups.sort(key=lambda x: x['LastModified'], reverse=True)
-
                 latest = backups[0]
-                # Convert LastModified to UTC and format as ISO-8601 with Z
-                if latest['LastModified'].tzinfo is None:
-                    latest_utc = latest['LastModified'].replace(tzinfo=timezone.utc)
-                else:
-                    latest_utc = latest['LastModified'].astimezone(timezone.utc)
-                last_backup_str = latest_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
-
-                backup_status = 'healthy'
-                if len(backups) >= 2:
-                    new_size = latest['Size']
-                    prev_size = backups[1]['Size']
-                    if prev_size > 0 and abs(new_size - prev_size) / prev_size * 100 <= 5.0:
-                        backup_status = 'healthy'
-                    else:
-                        backup_status = 'corrupted'
+                last_backup_str = format_last_backup_time(latest['LastModified'])
+                backup_status = get_backup_status(backups)
 
                 return {
                     'statusCode': 200,
@@ -418,23 +437,7 @@ def lambda_handler(event, context):
 
                 # Now list all backup files in S3 and perform size validation + cleanup
                 s3_client = boto3.client('s3')
-                paginator = s3_client.get_paginator('list_objects_v2')
-                pages = paginator.paginate(Bucket=backup_bucket, Prefix=backup_file_prefix)
-
-                backups = []
-                for page in pages:
-                    for obj in page.get('Contents', []):
-                        key = obj['Key']
-                        if not key.endswith('.sql.gz'):
-                            continue
-                        backups.append({
-                            'Key': key,
-                            'LastModified': obj['LastModified'],
-                            'Size': obj['Size']
-                        })
-
-                # Sort newest first
-                backups.sort(key=lambda x: x['LastModified'], reverse=True)
+                backups = list_backups(s3_client, backup_bucket, backup_file_prefix)
 
                 deleted_count = 0
                 # Only perform validation if we have at least two backups
@@ -442,8 +445,8 @@ def lambda_handler(event, context):
                     new_size = backups[0]['Size']
                     prev_size = backups[1]['Size']
 
-                    # Keep backups only if the new size is within 5% of the previous size
-                    if prev_size > 0 and abs(new_size - prev_size) / prev_size * 100 <= 5.0:
+                    # Keep backups only if the new size is within the threshold
+                    if is_size_within_threshold(new_size, prev_size):
                         # Delete all except the newest 5
                         for old in backups[5:]:
                             s3_client.delete_object(Bucket=backup_bucket, Key=old['Key'])
