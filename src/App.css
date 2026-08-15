@@ -33,6 +33,7 @@ body {
 .app-header h1 {
   font-size: 1.5rem;
   font-weight: 600;
+  flex: 1;
 }
 
 /* Calendar picker in header */
@@ -40,6 +41,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex: 0 0 auto;
 }
 
 .calendar-picker {
@@ -127,7 +129,8 @@ body {
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-end;
+  flex: 1;
 }
 
 .stop-infra-btn {
@@ -737,6 +740,15 @@ body {
     flex-direction: column;
     gap: 0.5rem;
     text-align: center;
+  }
+
+  .app-header h1 {
+    flex: initial;
+  }
+
+  .header-status {
+    flex: initial;
+    justify-content: center;
   }
 
   /* Stack dashboard charts vertically on mobile */
