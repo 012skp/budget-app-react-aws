@@ -278,6 +278,61 @@ def lambda_handler(event, context):
                 })
             }
 
+        elif action == 'get_last_backup':
+            s3 = boto3.client('s3')
+            try:
+                paginator = s3.get_paginator('list_objects_v2')
+                pages = paginator.paginate(Bucket=backup_bucket, Prefix=backup_file_prefix)
+                latest_ts = None
+                latest_key = None
+                for page in pages:
+                    contents = page.get('Contents', [])
+                    for obj in contents:
+                        key = obj['Key']
+                        # Only consider keys matching the standard backup file pattern
+                        if not key.startswith(backup_file_prefix) or not key.endswith('.sql.gz'):
+                            continue
+                        try:
+                            # Strip prefix and suffix to get the timestamp portion
+                            timestamp_str = key[len(backup_file_prefix):-len('.sql.gz')]
+                            dt = datetime.strptime(timestamp_str, '%Y-%m-%d_%H-%M-%S')
+                            if latest_ts is None or dt > latest_ts:
+                                latest_ts = dt
+                                latest_key = key
+                        except ValueError:
+                            # Non-standard backup file name – ignore
+                            continue
+
+                if latest_ts is None:
+                    return {
+                        'statusCode': 200,
+                        'headers': cors_headers,
+                        'body': json.dumps({
+                            'message': 'No backups found',
+                            'last_backup': None
+                        })
+                    }
+
+                last_backup_str = latest_ts.strftime('%Y-%m-%dT%H:%M:%S')
+                return {
+                    'statusCode': 200,
+                    'headers': cors_headers,
+                    'body': json.dumps({
+                        'message': 'Last backup retrieved successfully',
+                        'last_backup': last_backup_str,
+                        'backup_key': latest_key
+                    })
+                }
+            except Exception as e:
+                infra.log(f"ERROR: Failed to retrieve last backup: {str(e)}")
+                return {
+                    'statusCode': 500,
+                    'headers': cors_headers,
+                    'body': json.dumps({
+                        'error': f'Failed to retrieve last backup: {str(e)}'
+                    })
+                }
+
         # Database actions - need infrastructure
         else:
             infra.log(f"=== {action.upper()} ACTION INITIATED ===")
@@ -660,7 +715,7 @@ def lambda_handler(event, context):
                                     'get_expenses_by_category', 'get_expenses_by_user',
                                     'get_users', 'add_user', 'update_user', 'delete_user',
                                     'get_categories', 'add_category', 'update_category', 'delete_category',
-                                    'start', 'stop', 'status', 'query', 'db_backup'
+                                    'start', 'stop', 'status', 'get_last_backup', 'query', 'db_backup'
                                 ]
                             })
                         }
