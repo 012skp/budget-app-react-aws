@@ -301,29 +301,19 @@ def lambda_handler(event, context):
             try:
                 paginator = s3.get_paginator('list_objects_v2')
                 pages = paginator.paginate(Bucket=backup_bucket, Prefix=backup_file_prefix)
-                latest_dt = None
-                latest_key = None
+                backups = []
                 for page in pages:
-                    contents = page.get('Contents', [])
-                    for obj in contents:
+                    for obj in page.get('Contents', []):
                         key = obj['Key']
-                        # Only consider keys matching the standard backup file pattern
                         if not key.startswith(backup_file_prefix) or not key.endswith('.sql.gz'):
                             continue
-                        modified = obj.get('LastModified')
-                        if not modified:
-                            continue
-                        # Convert to a timezone‑aware UTC datetime for reliable comparison
-                        if modified.tzinfo is None:
-                            modified = modified.replace(tzinfo=timezone.utc)
-                        else:
-                            modified = modified.astimezone(timezone.utc)
+                        backups.append({
+                            'Key': key,
+                            'LastModified': obj['LastModified'],
+                            'Size': obj['Size']
+                        })
 
-                        if latest_dt is None or modified > latest_dt:
-                            latest_dt = modified
-                            latest_key = key
-
-                if latest_dt is None:
+                if not backups:
                     return {
                         'statusCode': 200,
                         'headers': cors_headers,
@@ -333,15 +323,35 @@ def lambda_handler(event, context):
                         })
                     }
 
-                # Output in ISO‑8601 with explicit UTC marker (Z)
-                last_backup_str = latest_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+                # Sort newest first
+                backups.sort(key=lambda x: x['LastModified'], reverse=True)
+
+                latest = backups[0]
+                # Convert LastModified to UTC and format as ISO-8601 with Z
+                if latest['LastModified'].tzinfo is None:
+                    latest_utc = latest['LastModified'].replace(tzinfo=timezone.utc)
+                else:
+                    latest_utc = latest['LastModified'].astimezone(timezone.utc)
+                last_backup_str = latest_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+                backup_status = 'healthy'
+                if len(backups) >= 2:
+                    new_size = latest['Size']
+                    prev_size = backups[1]['Size']
+                    if prev_size > 0 and abs(new_size - prev_size) / prev_size * 100 <= 5.0:
+                        backup_status = 'healthy'
+                    else:
+                        backup_status = 'corrupted'
+
                 return {
                     'statusCode': 200,
                     'headers': cors_headers,
                     'body': json.dumps({
                         'message': 'Last backup retrieved successfully',
                         'last_backup': last_backup_str,
-                        'backup_key': latest_key
+                        'backup_key': latest['Key'],
+                        'backup_status': backup_status,
+                        'backup_size': latest['Size']
                     })
                 }
             except Exception as e:

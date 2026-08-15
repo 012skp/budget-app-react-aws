@@ -46,6 +46,7 @@ function App() {
     const [expenseFilter, setExpenseFilter] = useState(null);
     const [lastBackup, setLastBackup] = useState(null);
     const [backupLoadError, setBackupLoadError] = useState(false);
+    const [backupCorrupt, setBackupCorrupt] = useState(false);
 
     const { users, categories, refreshUsers, refreshCategories } = useBaseData();
     const { expenses, loading, apiStatus, fetchExpenses } = useExpenses(dateRange);
@@ -72,7 +73,7 @@ function App() {
         fetchExpenses();
     }, [fetchExpenses]);
 
-    // Load last database backup timestamp from Lambda (single source of truth: `last_backup` field)
+    // Load last database backup timestamp and corruption status from Lambda
     useEffect(() => {
         let cancelled = false;
         getLastBackup()
@@ -80,12 +81,15 @@ function App() {
                 if (cancelled) return;
                 const data = response.data || {};
                 const backup = data.last_backup;
+                const status = data.backup_status;
                 setLastBackup(backup || null);
+                setBackupCorrupt(status === 'corrupted');
                 setBackupLoadError(!backup);
             })
             .catch(() => {
                 if (cancelled) return;
                 setLastBackup(null);
+                setBackupCorrupt(false);
                 setBackupLoadError(true);
             });
         return () => {
@@ -186,9 +190,20 @@ function App() {
                 </div>
                 <div className="backup-status">
                     {lastBackup ? (
-                        <span className={`status-indicator ${isBackupOlderThanADay(lastBackup) ? 'backup-stale' : 'backup-ok'}`}>
-                            🗄️ Last backup: {formatBackupTime(lastBackup)}
-                        </span>
+                        (() => {
+                            const stale = isBackupOlderThanADay(lastBackup);
+                            const corrupt = backupCorrupt;
+                            const warning = stale || corrupt;
+                            const statusClass = warning ? 'backup-stale' : 'backup-ok';
+                            const label = corrupt
+                                ? `⚠️ Last backup may be corrupted: ${formatBackupTime(lastBackup)}`
+                                : `🗄️ Last backup: ${formatBackupTime(lastBackup)}`;
+                            return (
+                                <span className={`status-indicator ${statusClass}`}>
+                                    {label}
+                                </span>
+                            );
+                        })()
                     ) : (
                         <span className="status-indicator">
                             🗄️ Last backup: {backupLoadError ? 'Unavailable' : 'Loading...'}
