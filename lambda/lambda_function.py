@@ -8,9 +8,10 @@ from datetime import datetime
 ssm = boto3.client('ssm')
 
 class InfrastructureManager:
-    def __init__(self, instance_id, db_config):
+    def __init__(self, instance_id, db_config, access_log_file=None):
         self.instance_id = instance_id
         self.db_config = db_config
+        self.access_log_file = access_log_file or '/var/log/infra_access.log'
         self.ec2 = boto3.client('ec2')
 
     def log(self, message):
@@ -151,10 +152,10 @@ class InfrastructureManager:
         return True, public_ip, was_auto_started
 
     def log_access(self, action):
-        """Append a line to /var/log/infra_access.log on the EC2 instance (best effort)."""
+        """Append a line to the access log on the EC2 instance (best effort)."""
         try:
-            # ✅ Use double quotes so $(date) gets executed by shell
-            cmd = f'echo "$(date) - {action}" >> /var/log/infra_access.log'
+            # Use double quotes so $(date) gets executed by shell
+            cmd = f'echo "$(date) - {action}" >> {self.access_log_file}'
 
             ssm.send_command(
                 InstanceIds=[self.instance_id],
@@ -184,9 +185,13 @@ def normalize_end_date(end_date):
     return end_date + ' 23:59:59'
 
 def lambda_handler(event, context):
-    # Configuration
-    INSTANCE_ID = 'i-04922d403f1790008'
+    # Configuration (stored in Parameter Store)
+    INSTANCE_ID = get_parameter('/budgetApp/ec2/instanceId')
     db_password = get_parameter('/budgetApp/ec2/mariadb/password')
+    backup_bucket = get_parameter('/budgetApp/ec2/s3/backup/bucketName')
+    backup_file_prefix = get_parameter('/budgetApp/ec2/s3/backup/filePrefix')
+    access_log_file = get_parameter('/budgetApp/ec2/mariadb/accessLogFile')
+
     DB_CONFIG = {
         'user': 'budget_user',
         'password': db_password,
@@ -210,7 +215,7 @@ def lambda_handler(event, context):
         }
 
     # Initialize infrastructure manager
-    infra = InfrastructureManager(INSTANCE_ID, DB_CONFIG)
+    infra = InfrastructureManager(INSTANCE_ID, DB_CONFIG, access_log_file)
     ec2 = boto3.client('ec2')
 
     # Get action and data from event
@@ -300,7 +305,7 @@ def lambda_handler(event, context):
                 backup_command = (
                     "mysqldump -u root -p'" + escaped_root_password + "' --all-databases --routines --triggers "
                     "--events --single-transaction --quick | gzip | "
-                    "aws s3 cp - s3://mariadb-backups-126606499532/mariadb_backup_all_"
+                    "aws s3 cp - s3://" + backup_bucket + "/" + backup_file_prefix +
                     "$(date +\"%Y-%m-%d_%H-%M-%S\").sql.gz"
                 )
                 ssm.send_command(
