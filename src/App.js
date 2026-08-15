@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import './App.css';
-import { stopInfraAPI } from './services/api';
+import { stopInfraAPI, getLastBackup } from './services/api';
 import { dateHelpers } from './utils/dateHelpers';
 import CalendarPicker from './components/Common/CalendarPicker';
 
@@ -12,6 +12,30 @@ import CategoryManager from './components/Categories/CategoryManager'
 import { useBaseData } from './hooks/useBaseData';
 import { useExpenses } from './hooks/useExpenses';
 
+const formatBackupTime = (value) => {
+  if (!value) return 'N/A';
+  const normalized = String(value).includes('T') ? value : String(value).replace(' ', 'T');
+  const parsed = new Date(normalized);
+  if (!isNaN(parsed.getTime())) {
+    return parsed.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+  return String(value);
+};
+
+const isBackupOlderThanADay = (value) => {
+  if (!value) return false;
+  const normalized = String(value).includes('T') ? value : String(value).replace(' ', 'T');
+  const parsed = new Date(normalized);
+  if (isNaN(parsed.getTime())) return false;
+  return Date.now() - parsed.getTime() > 24 * 60 * 60 * 1000;
+};
+
 function App() {
     const [currentPage, setCurrentPage] = useState('dashboard');
     const [dateRange, setDateRange] = useState(() => {
@@ -20,6 +44,8 @@ function App() {
     });
     const [stoppingInfra, setStoppingInfra] = useState(false);
     const [expenseFilter, setExpenseFilter] = useState(null);
+    const [lastBackup, setLastBackup] = useState(null);
+    const [backupLoadError, setBackupLoadError] = useState(false);
 
     const { users, categories, refreshUsers, refreshCategories } = useBaseData();
     const { expenses, loading, apiStatus, fetchExpenses } = useExpenses(dateRange);
@@ -45,6 +71,32 @@ function App() {
     useEffect(() => {
         fetchExpenses();
     }, [fetchExpenses]);
+
+    // Load last database backup information once when the app mounts
+    useEffect(() => {
+        let cancelled = false;
+        getLastBackup()
+            .then(response => {
+                if (cancelled) return;
+                const data = response.data || {};
+                const backup = data.last_backup || data.lastBackup || data.backup_time || data.Timestamp || data.timestamp || data.message;
+                if (backup) {
+                    setLastBackup(backup);
+                    setBackupLoadError(false);
+                } else {
+                    setLastBackup(null);
+                    setBackupLoadError(true);
+                }
+            })
+            .catch(() => {
+                if (cancelled) return;
+                setLastBackup(null);
+                setBackupLoadError(true);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     const handleStopInfra = async () => {
         const confirmed = window.confirm(
@@ -136,6 +188,17 @@ function App() {
                 <h1>💰 Budget Tracker</h1>
                 <div className="calendar-bar">
                     <CalendarPicker dateRange={dateRange} onDateChange={handleDateChange} />
+                </div>
+                <div className="backup-status">
+                    {lastBackup ? (
+                        <span className={`status-indicator ${isBackupOlderThanADay(lastBackup) ? 'backup-stale' : 'backup-ok'}`}>
+                            🗄️ Last backup: {formatBackupTime(lastBackup)}
+                        </span>
+                    ) : (
+                        <span className="status-indicator">
+                            🗄️ Last backup: {backupLoadError ? 'Unavailable' : 'Loading...'}
+                        </span>
+                    )}
                 </div>
                 <div className="api-status">
 

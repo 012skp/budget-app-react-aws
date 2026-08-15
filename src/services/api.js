@@ -137,6 +137,11 @@ export const testAPI = () => callAPI({
     action: "query"
 });
 
+// Get last database backup timestamp
+export const getLastBackup = () => callAPI({
+    action: "get_last_backup"
+});
+
 // API to stop Infra(EC2,Database)
 export const stopInfraAPI = () => callAPI({
     action: "stop"
