@@ -295,6 +295,8 @@ def lambda_handler(event, context):
             # Handle database backup via SSM - no direct DB connection needed
             if action == 'db_backup':
                 root_password = get_parameter('/budgetApp/ec2/mariadb/password/root')
+                # Escape any single quote characters so the password stays literal inside single quotes
+                escaped_root_password = root_password.replace("'", "'\\''")
                 backup_command = (
                     "mysqldump -u root -p'" + escaped_root_password + "' --all-databases --routines --triggers "
                     "--events --single-transaction --quick | gzip | "
