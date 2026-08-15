@@ -72,21 +72,16 @@ function App() {
         fetchExpenses();
     }, [fetchExpenses]);
 
-    // Load last database backup information once when the app mounts
+    // Load last database backup timestamp from Lambda (single source of truth: `last_backup` field)
     useEffect(() => {
         let cancelled = false;
         getLastBackup()
             .then(response => {
                 if (cancelled) return;
                 const data = response.data || {};
-                const backup = data.last_backup || data.lastBackup || data.backup_time || data.Timestamp || data.timestamp || data.message;
-                if (backup) {
-                    setLastBackup(backup);
-                    setBackupLoadError(false);
-                } else {
-                    setLastBackup(null);
-                    setBackupLoadError(true);
-                }
+                const backup = data.last_backup;
+                setLastBackup(backup || null);
+                setBackupLoadError(!backup);
             })
             .catch(() => {
                 if (cancelled) return;
