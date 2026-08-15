@@ -73,15 +73,14 @@ function DayWiseChart({ data, userData = [], categoryNames, userNames = [], tota
         return -1;
     };
 
-    // Format a YYYY-MM-DD string as "2 Aug 2026"
+    // Format a YYYY-MM-DD string as "2 Aug"
     const formatDayTick = (dateStr) => {
         if (!dateStr) return '';
         const d = new Date(dateStr + 'T00:00:00');
         if (isNaN(d.getTime())) return dateStr;
         return d.toLocaleDateString('en-GB', {
             day: 'numeric',
-            month: 'short',
-            year: 'numeric'
+            month: 'short'
         });
     };
 
