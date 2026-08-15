@@ -2,7 +2,7 @@ import json
 import boto3
 import pymysql
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 ssm = boto3.client('ssm')
@@ -283,7 +283,7 @@ def lambda_handler(event, context):
             try:
                 paginator = s3.get_paginator('list_objects_v2')
                 pages = paginator.paginate(Bucket=backup_bucket, Prefix=backup_file_prefix)
-                latest_ts = None
+                latest_dt = None
                 latest_key = None
                 for page in pages:
                     contents = page.get('Contents', [])
@@ -292,18 +292,20 @@ def lambda_handler(event, context):
                         # Only consider keys matching the standard backup file pattern
                         if not key.startswith(backup_file_prefix) or not key.endswith('.sql.gz'):
                             continue
-                        try:
-                            # Strip prefix and suffix to get the timestamp portion
-                            timestamp_str = key[len(backup_file_prefix):-len('.sql.gz')]
-                            dt = datetime.strptime(timestamp_str, '%Y-%m-%d_%H-%M-%S')
-                            if latest_ts is None or dt > latest_ts:
-                                latest_ts = dt
-                                latest_key = key
-                        except ValueError:
-                            # Non-standard backup file name – ignore
+                        modified = obj.get('LastModified')
+                        if not modified:
                             continue
+                        # Convert to a timezone‑aware UTC datetime for reliable comparison
+                        if modified.tzinfo is None:
+                            modified = modified.replace(tzinfo=timezone.utc)
+                        else:
+                            modified = modified.astimezone(timezone.utc)
 
-                if latest_ts is None:
+                        if latest_dt is None or modified > latest_dt:
+                            latest_dt = modified
+                            latest_key = key
+
+                if latest_dt is None:
                     return {
                         'statusCode': 200,
                         'headers': cors_headers,
@@ -313,7 +315,8 @@ def lambda_handler(event, context):
                         })
                     }
 
-                last_backup_str = latest_ts.strftime('%Y-%m-%dT%H:%M:%S')
+                # Output in ISO‑8601 with explicit UTC marker (Z)
+                last_backup_str = latest_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
                 return {
                     'statusCode': 200,
                     'headers': cors_headers,
