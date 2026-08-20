@@ -155,6 +155,11 @@ class InfrastructureManager:
 
     def log_access(self, action):
         """Append a line to the access log on the EC2 instance (best effort)."""
+        # Wait for SSM Agent to be online before attempting to send a command
+        if not wait_for_ssm_agent(ssm, self.instance_id, log=self.log):
+            self.log("SSM agent did not become online, skipping access log write")
+            return
+
         try:
             # Use double quotes so $(date) gets executed by shell
             cmd = f'echo "$(date) - {action}" >> {self.access_log_file}'
@@ -185,6 +190,32 @@ def normalize_end_date(end_date):
     if 'T' in end_date or ' ' in end_date:
         return end_date
     return end_date + ' 23:59:59'
+
+def wait_for_ssm_agent(ssm, instance_id, max_wait=300, interval=10, log=print):
+    """
+    Wait until the SSM Agent is online for the given EC2 instance.
+    Returns True if the agent becomes online within max_wait, otherwise False.
+    """
+    elapsed = 0
+    while elapsed < max_wait:
+        try:
+            response = ssm.describe_instance_information(
+                Filters=[{'Key': 'InstanceIds', 'Values': [instance_id]}]
+            )
+            instances = response.get('InstanceInformationList', [])
+            if instances and instances[0].get('PingStatus') == 'Online':
+                log(f"SSM Agent is online after {elapsed}s")
+                return True
+        except Exception as e:
+            # If the call itself fails, we still wait and retry
+            log(f"Error checking SSM agent status: {e}")
+
+        log(f"Waiting for SSM Agent... ({elapsed}s elapsed)")
+        time.sleep(interval)
+        elapsed += interval
+
+    log(f"SSM Agent did not come online within {max_wait}s")
+    return False
 
 def list_backups(s3_client, bucket, prefix):
     """
@@ -415,28 +446,23 @@ def lambda_handler(event, context):
                     "$(date +\"%Y-%m-%d_%H-%M-%S\").sql.gz"
                 )
 
-                # The instance may have just been started, and the SSM agent might
-                # not be online yet. Retry the SendCommand a few times if we get
-                # InvalidInstanceId ("Instances not in a valid state for account").
-                send_attempts = 3
-                send_response = None
-                for attempt in range(send_attempts):
-                    try:
-                        send_response = ssm.send_command(
-                            InstanceIds=[INSTANCE_ID],
-                            DocumentName='AWS-RunShellScript',
-                            Parameters={'commands': [backup_command]}
-                        )
-                        infra.log(f"Database backup command sent, command_id={send_response['Command']['CommandId']}")
-                        break
-                    except Exception as e:
-                        if 'InvalidInstanceId' in str(e) and attempt < send_attempts - 1:
-                            infra.log(f"SSM agent not ready yet, retrying in 5s (attempt {attempt+1}/{send_attempts})")
-                            time.sleep(5)
-                        else:
-                            raise
+                # Wait for the SSM agent to be online before sending the backup command
+                if not wait_for_ssm_agent(ssm, INSTANCE_ID, log=infra.log):
+                    return {
+                        'statusCode': 500,
+                        'headers': cors_headers,
+                        'body': json.dumps({
+                            'error': 'SSM agent is not online, cannot send backup command'
+                        })
+                    }
 
+                send_response = ssm.send_command(
+                    InstanceIds=[INSTANCE_ID],
+                    DocumentName='AWS-RunShellScript',
+                    Parameters={'commands': [backup_command]}
+                )
                 command_id = send_response['Command']['CommandId']
+                infra.log(f"Database backup command sent, command_id={command_id}")
 
                 # Wait for the backup command to finish before checking/cleaning S3
                 command_status = wait_for_ssm_command(ssm, command_id, INSTANCE_ID)
