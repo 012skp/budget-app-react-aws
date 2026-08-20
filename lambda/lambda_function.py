@@ -415,13 +415,28 @@ def lambda_handler(event, context):
                     "$(date +\"%Y-%m-%d_%H-%M-%S\").sql.gz"
                 )
 
-                send_response = ssm.send_command(
-                    InstanceIds=[INSTANCE_ID],
-                    DocumentName='AWS-RunShellScript',
-                    Parameters={'commands': [backup_command]}
-                )
+                # The instance may have just been started, and the SSM agent might
+                # not be online yet. Retry the SendCommand a few times if we get
+                # InvalidInstanceId ("Instances not in a valid state for account").
+                send_attempts = 3
+                send_response = None
+                for attempt in range(send_attempts):
+                    try:
+                        send_response = ssm.send_command(
+                            InstanceIds=[INSTANCE_ID],
+                            DocumentName='AWS-RunShellScript',
+                            Parameters={'commands': [backup_command]}
+                        )
+                        infra.log(f"Database backup command sent, command_id={send_response['Command']['CommandId']}")
+                        break
+                    except Exception as e:
+                        if 'InvalidInstanceId' in str(e) and attempt < send_attempts - 1:
+                            infra.log(f"SSM agent not ready yet, retrying in 5s (attempt {attempt+1}/{send_attempts})")
+                            time.sleep(5)
+                        else:
+                            raise
+
                 command_id = send_response['Command']['CommandId']
-                infra.log(f"Database backup command sent, command_id={command_id}")
 
                 # Wait for the backup command to finish before checking/cleaning S3
                 command_status = wait_for_ssm_command(ssm, command_id, INSTANCE_ID)
