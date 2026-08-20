@@ -143,7 +143,13 @@ class InfrastructureManager:
             self.log("ERROR: Instance has no public IP")
             return False, None, was_auto_started
 
-        # Step 4: Wait for database (ONLY log if waiting)
+        # Step 4: Wait for SSM Agent to be online, because all later commands
+        # (access log, backups) depend on SSM having finished registering.
+        if not wait_for_ssm_agent(ssm, self.instance_id, log=self.log):
+            self.log("ERROR: SSM agent did not become online")
+            return False, public_ip, was_auto_started
+
+        # Step 5: Wait for database (ONLY log if waiting)
         if not self.wait_for_database_smart(public_ip):
             return False, public_ip, was_auto_started
 
@@ -155,11 +161,6 @@ class InfrastructureManager:
 
     def log_access(self, action):
         """Append a line to the access log on the EC2 instance (best effort)."""
-        # Wait for SSM Agent to be online before attempting to send a command
-        if not wait_for_ssm_agent(ssm, self.instance_id, log=self.log):
-            self.log("SSM agent did not become online, skipping access log write")
-            return
-
         try:
             # Use double quotes so $(date) gets executed by shell
             cmd = f'echo "$(date) - {action}" >> {self.access_log_file}'
@@ -445,16 +446,6 @@ def lambda_handler(event, context):
                     "aws s3 cp - s3://" + backup_bucket + "/" + backup_file_prefix +
                     "$(date +\"%Y-%m-%d_%H-%M-%S\").sql.gz"
                 )
-
-                # Wait for the SSM agent to be online before sending the backup command
-                if not wait_for_ssm_agent(ssm, INSTANCE_ID, log=infra.log):
-                    return {
-                        'statusCode': 500,
-                        'headers': cors_headers,
-                        'body': json.dumps({
-                            'error': 'SSM agent is not online, cannot send backup command'
-                        })
-                    }
 
                 send_response = ssm.send_command(
                     InstanceIds=[INSTANCE_ID],
